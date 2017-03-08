@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import click
 from os import listdir, path
 from progress.bar import Bar
 import pandas as pd
@@ -40,18 +39,3 @@ def sample_needs(dataset_path, saving_dir, scheduling_period, resource_type,
         res_df = res_df.sample(num_users, axis=1, random_state=42)
 
     res_df.to_csv(path.join(saving_dir, file_name))
-
-
-@click.command()
-@click.argument('dataset_path', type=click.Path(exists=True, file_okay=False,
-                                                readable=True))
-@click.argument('saving_dir', type=click.Path(exists=True, file_okay=False,
-                                              writable=True))
-@click.argument('scheduling_period', type=click.INT)
-@click.argument('resource_type', type=click.Choice(['cpu', 'memory']))
-@click.option('--num_users', default=0)
-def main(*args, **kwargs):
-    sample_needs(*args, **kwargs)
-
-if __name__ == '__main__':
-    main()

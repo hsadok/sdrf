@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 from progress.bar import Bar
 from progress.spinner import Spinner
-import click
 
 from allocators.hyperplane_allocation import allocate
 from helpers.file_name import FileName
@@ -94,18 +93,3 @@ def simulate_allocation(dataset_file, saving_dir, delta, resource_percentage,
                 '%f, resource_type: %s}\n' %
                 (alloc_file_name.name, scheduling_period, delta,
                  resource_percentage, resource_type))
-
-
-@click.command()
-@click.argument('dataset_file', type=click.Path(exists=True, file_okay=True,
-                                                dir_okay=False, readable=True))
-@click.argument('saving_dir', type=click.Path(exists=True, file_okay=False,
-                                              writable=True))
-@click.argument('delta', type=click.FLOAT)
-@click.argument('resource_percentage', type=click.FLOAT)
-@click.argument('free_riders', default=0)
-def main(*args, **kwargs):
-    simulate_allocation(*args, **kwargs)
-
-if __name__ == '__main__':
-    main()

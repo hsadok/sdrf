@@ -38,15 +38,11 @@ def generate_user_needs(file_name, saving_name=None):
             wr.writerow([t, c, m])
 
 
-if __name__ == '__main__':
-    dataset_path = '/home/gta/sadok_gta/clusterdata-2011-2/'
-    user_aggregate_path = path.join(dataset_path, 'user_aggregate')
-    user_aggregate_timestamp_path = path.join(dataset_path,
-                                              'user_aggregate_timestamp')
-    files = sorted(listdir(user_aggregate_path))
+def generate_all_user_needs(dataset_path, saving_dir):
+    files = sorted(listdir(dataset_path))
     if 'users.csv' in files:
         files.remove('users.csv')
     for f in files:
-        saving_name = path.join(user_aggregate_timestamp_path, f)
+        saving_name = path.join(saving_dir, f)
         print saving_name
-        generate_user_needs(path.join(user_aggregate_path, f), saving_name)
+        generate_user_needs(path.join(dataset_path, f), saving_name)

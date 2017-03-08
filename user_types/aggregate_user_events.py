@@ -2,9 +2,8 @@ import csv
 from os import path, listdir
 import pandas as pd
 from collections import defaultdict, deque
-from schema import Schema
+from helpers.schema import Schema
 import numpy as np
-import math
 import threading
 import itertools
 import time
