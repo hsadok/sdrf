@@ -35,7 +35,7 @@ def multicore_simulate_allocation(dataset_file, saving_dir,
 
     for i, job in enumerate(jobs):
         while number_concurrent_jobs <= 0:
-            time.sleep(60)
+            time.sleep(1)
             available_memory = psutil.virtual_memory().available
             number_concurrent_jobs = available_memory/estimate_memory_usage
         print 'job %i' % (i+1,)
