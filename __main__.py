@@ -52,7 +52,7 @@ def simulate_allocation(*args, **kwargs):
     simulate_allocation(*args, **kwargs)
 
 
-@cli.command()
+@cli.command(help='Simulate allocation using multiple cores.')
 @click.argument('dataset_file', type=click.Path(exists=True, file_okay=True,
                                                 dir_okay=False, readable=True))
 @click.argument('saving_dir', type=click.Path(exists=True, file_okay=False,
