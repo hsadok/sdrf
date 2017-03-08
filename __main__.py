@@ -1,5 +1,6 @@
 import click
-
+import json
+import ConfigParser as configparser
 
 @click.group()
 def cli():
@@ -49,6 +50,27 @@ def sample_needs(*args, **kwargs):
 def simulate_allocation(*args, **kwargs):
     from simulators.simulate_allocation import simulate_allocation
     simulate_allocation(*args, **kwargs)
+
+
+@cli.command()
+@click.argument('dataset_file', type=click.Path(exists=True, file_okay=True,
+                                                dir_okay=False, readable=True))
+@click.argument('saving_dir', type=click.Path(exists=True, file_okay=False,
+                                              writable=True))
+@click.argument('config_file', type=click.Path(exists=True, file_okay=True,
+                                               dir_okay=False, readable=True))
+def multicore_simulate_allocation(dataset_file, saving_dir, config_file):
+    from simulators.multicore_simulate_allocation import \
+        multicore_simulate_allocation
+    config = configparser.ConfigParser()
+    config.read(config_file)
+    estimate_memory_usage = config.getint("config", "estimate_memory_usage")
+    deltas = json.loads(config.get("config", "deltas"))
+    resource_percentages = json.loads(config.get("config", "resources"))
+
+    multicore_simulate_allocation(dataset_file, saving_dir,
+                                  estimate_memory_usage, deltas,
+                                  resource_percentages)
 
 
 if __name__ == '__main__':

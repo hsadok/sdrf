@@ -3,9 +3,6 @@
 import multiprocessing
 import psutil
 import time
-import click
-import json
-import ConfigParser as configparser
 from simulate_allocation import simulate_allocation
 from helpers.allocation import Allocation
 from helpers.file_name import FileName
@@ -47,26 +44,3 @@ def multicore_simulate_allocation(dataset_file, saving_dir,
 
     for job in jobs:
         job.join()
-
-
-@click.command()
-@click.argument('dataset_file', type=click.Path(exists=True, file_okay=True,
-                                                dir_okay=False, readable=True))
-@click.argument('saving_dir', type=click.Path(exists=True, file_okay=False,
-                                              writable=True))
-@click.argument('config_file', type=click.Path(exists=True, file_okay=True,
-                                               dir_okay=False, readable=True))
-def main(dataset_file, saving_dir, config_file):
-    config = configparser.ConfigParser()
-    config.read(config_file)
-    estimate_memory_usage = config.getint("config", "estimate_memory_usage")
-    deltas = json.loads(config.get("config", "deltas"))
-    resource_percentages = json.loads(config.get("config", "resources"))
-
-    multicore_simulate_allocation(dataset_file, saving_dir,
-                                  estimate_memory_usage, deltas,
-                                  resource_percentages)
-
-
-if __name__ == '__main__':
-    main()
