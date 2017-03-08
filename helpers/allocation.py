@@ -22,8 +22,9 @@ class Allocation(object):
             params_dict = file_name.attributes
             resource_type = params_dict['resource_type']
             params_dict['file_name'] = path.join(data_path, f)
-            params_dict['types_file_name'] = user_needs_files[resource_type]
-            self._allocations[resource_type].append(params_dict)
+            if resource_type in user_needs_files:
+                params_dict['types_file_name'] = user_needs_files[resource_type]
+                self._allocations[resource_type].append(params_dict)
         self.user_type_files = user_needs_files
 
     def resource_types(self):
