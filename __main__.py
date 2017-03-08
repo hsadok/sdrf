@@ -1,10 +1,5 @@
 import click
 
-from user_types import aggregate_user_events
-from user_types import generate_user_needs
-from user_types import sample_needs
-from simulators import simulate_allocation
-
 
 @click.group()
 def cli():
@@ -17,7 +12,8 @@ def cli():
 @click.argument('saving_dir', type=click.Path(exists=True, file_okay=False,
                                               writable=True))
 def aggregate_user_events(*args, **kwargs):
-    aggregate_user_events.aggregate_user_events(*args, **kwargs)
+    from user_types.aggregate_user_events import aggregate_user_events
+    aggregate_user_events(*args, **kwargs)
 
 
 @cli.command(help='Aggregate requests in the same timestamp.')
@@ -26,7 +22,8 @@ def aggregate_user_events(*args, **kwargs):
 @click.argument('saving_dir', type=click.Path(exists=True, file_okay=False,
                                               writable=True))
 def generate_user_needs(*args, **kwargs):
-    generate_user_needs.generate_all_user_needs(*args, **kwargs)
+    from user_types.generate_user_needs import generate_all_user_needs
+    generate_all_user_needs(*args, **kwargs)
 
 
 @cli.command(help='Sample needs following a scheduling period.')
@@ -38,7 +35,8 @@ def generate_user_needs(*args, **kwargs):
 @click.argument('resource_type', type=click.Choice(['cpu', 'memory']))
 @click.option('--num_users', default=0)
 def sample_needs(*args, **kwargs):
-    sample_needs.sample_needs(*args, **kwargs)
+    from user_types.sample_needs import sample_needs
+    sample_needs(*args, **kwargs)
 
 
 @cli.command(help='Simulate allocation.')
@@ -50,7 +48,8 @@ def sample_needs(*args, **kwargs):
 @click.argument('resource_percentage', type=click.FLOAT)
 @click.argument('free_riders', default=0)
 def simulate_allocation(*args, **kwargs):
-    simulate_allocation.simulate_allocation(*args, **kwargs)
+    from simulators.simulate_allocation import simulate_allocation
+    simulate_allocation(*args, **kwargs)
 
 
 if __name__ == '__main__':
