@@ -10,30 +10,27 @@ class FileName(object):
         getattr(self, args[0])(*args[1:])
 
     def alloc(self, resource_type, scheduling_period, delta,
-              resource_percentage, free_riders=None):
+              resource_percentage):
         if self.name is None:
-            self.name = 'alloc-%s-%s-%s-%s-%s.csv' % (resource_type,
+            self.name = 'alloc-%s-%s-%s-%s.csv' % (resource_type,
                                                       str(scheduling_period),
                                                       str(delta),
-                                                      str(resource_percentage),
-                                                      str(free_riders))
+                                                      str(resource_percentage))
         self.attributes = {'resource_type': resource_type,
                            'scheduling_period': int(scheduling_period),
                            'delta': float(delta),
-                           'resource_percentage': float(resource_percentage),
-                           'free_riders': int(free_riders or 0)}
+                           'resource_percentage': float(resource_percentage)}
 
     def credibility(self, resource_type, scheduling_period, delta,
-                    resource_percentage, free_riders=None):
+                    resource_percentage):
         if self.name is None:
-            self.name = 'credibility-%s-%s-%s-%s-%s.csv' % (
+            self.name = 'credibility-%s-%s-%s-%s.csv' % (
                 resource_type, str(scheduling_period), str(delta),
-                str(resource_percentage), str(free_riders))
+                str(resource_percentage))
         self.attributes = {'resource_type': resource_type,
                            'scheduling_period': int(scheduling_period),
                            'delta': float(delta),
-                           'resource_percentage': float(resource_percentage),
-                           'free_riders': int(free_riders or 0)}
+                           'resource_percentage': float(resource_percentage)}
 
     def user_needs(self, resource_type, scheduling_period, num_users):
         if self.name is None:

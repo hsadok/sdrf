@@ -10,9 +10,10 @@ from simulate_allocation import simulate_allocation
 from helpers.allocation import Allocation
 from helpers.file_name import FileName
 
+
 def multicore_simulate_allocation(dataset_file, saving_dir,
                                   estimate_memory_usage, deltas,
-                                  resource_percentages, free_riders):
+                                  resource_percentages):
 
     resource_type = FileName(dataset_file).attributes['resource_type']
     print resource_type
@@ -28,8 +29,7 @@ def multicore_simulate_allocation(dataset_file, saving_dir,
                 print 'ignoring: delta = %f, resource percentage = %f' % \
                       (delta, res_percentage)
                 continue
-            args = (dataset_file, saving_dir, delta, res_percentage,
-                    free_riders)
+            args = (dataset_file, saving_dir, delta, res_percentage)
             p = multiprocessing.Process(target=simulate_allocation, args=args)
             jobs.append(p)
 
@@ -62,11 +62,10 @@ def main(dataset_file, saving_dir, config_file):
     estimate_memory_usage = config.getint("config", "estimate_memory_usage")
     deltas = json.loads(config.get("config", "deltas"))
     resource_percentages = json.loads(config.get("config", "resources"))
-    free_riders = config.getint("config", "free_riders")
 
     multicore_simulate_allocation(dataset_file, saving_dir,
                                   estimate_memory_usage, deltas,
-                                  resource_percentages, free_riders)
+                                  resource_percentages)
 
 
 if __name__ == '__main__':

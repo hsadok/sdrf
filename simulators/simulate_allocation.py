@@ -52,8 +52,7 @@ class Allocator(object):
         return new_output
 
 
-def simulate_allocation(dataset_file, saving_dir, delta, resource_percentage,
-                        free_riders):
+def simulate_allocation(dataset_file, saving_dir, delta, resource_percentage):
     att = FileName(dataset_file).attributes
     resource_type = att['resource_type']
     scheduling_period = att['scheduling_period']
@@ -62,11 +61,6 @@ def simulate_allocation(dataset_file, saving_dir, delta, resource_percentage,
     res_means = res_df.mean()
     user_resources = resource_percentage * res_means
     user_resources = user_resources.apply(lambda x:np.ceil(x).astype(np.int64))
-
-    for i in xrange(free_riders):
-        user_name = 'fr%i' % i
-        res_df[user_name] = int(1e9)
-        user_resources[user_name] = 0
 
     number_of_users = res_df.shape[1]
     num_periods = len(res_df)
@@ -79,10 +73,10 @@ def simulate_allocation(dataset_file, saving_dir, delta, resource_percentage,
     print '\n'
 
     alloc_file_name = FileName('alloc', resource_type, scheduling_period,
-                               delta, resource_percentage, free_riders)
+                               delta, resource_percentage)
     credibility_file_name = FileName('credibility', resource_type,
                                      scheduling_period, delta,
-                                     resource_percentage, free_riders)
+                                     resource_percentage)
 
     allocation.to_csv(path.join(saving_dir, alloc_file_name.name))
     np.savetxt(path.join(saving_dir, credibility_file_name.name),

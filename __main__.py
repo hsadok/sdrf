@@ -46,7 +46,6 @@ def sample_needs(*args, **kwargs):
                                               writable=True))
 @click.argument('delta', type=click.FLOAT)
 @click.argument('resource_percentage', type=click.FLOAT)
-@click.argument('free_riders', default=0)
 def simulate_allocation(*args, **kwargs):
     from simulators.simulate_allocation import simulate_allocation
     simulate_allocation(*args, **kwargs)
