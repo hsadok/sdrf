@@ -2,6 +2,7 @@ import click
 import json
 import ConfigParser as configparser
 
+
 @click.group()
 def cli():
     pass
