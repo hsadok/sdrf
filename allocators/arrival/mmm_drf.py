@@ -33,7 +33,6 @@ class MMMDRF(Arrival):
             (c, i) for i, c in enumerate(np.max(self.credibilities, axis=1))]
 
         self.allocation_history = []
-        self.queue_switch_time = -1
 
     def _insert_user_resources_heap(self, user):
         # same as wDRF when user_resources/capacities are used as the weight
@@ -49,8 +48,6 @@ class MMMDRF(Arrival):
     def _allocate_from_queue(self, queue, insert_function, user_fulfilment):
         while len(queue) > 0:
             try:
-                if not user_fulfilment:
-                    print 'queue: ', queue
                 dominant_share, user = heapq.heappop(queue)
             except IndexError:
                 break
@@ -66,7 +63,6 @@ class MMMDRF(Arrival):
                     user_allocation + user_demand <= self.user_resources)
             else:
                 user_fulfills_request = True
-                print 'user: ', user
 
             if system_fulfills_request and user_fulfills_request:
                 self.consumed_resources += user_demand
@@ -82,9 +78,6 @@ class MMMDRF(Arrival):
                                               self._insert_user_resources_heap,
                                               True)
         if not allocated:
-            if self.queue_switch_time == -1:
-                self.queue_switch_time = len(self.allocation_history)
-                print 'switch allocations: ', self.allocations
             allocated = self._allocate_from_queue(self.user_credibilities_heap,
                                                   self._insert_user_cred_heap,
                                                   False)
