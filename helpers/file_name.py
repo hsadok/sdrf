@@ -13,9 +13,9 @@ class FileName(object):
               resource_percentage):
         if self.name is None:
             self.name = 'alloc-%s-%s-%s-%s.csv' % (resource_type,
-                                                      str(scheduling_period),
-                                                      str(delta),
-                                                      str(resource_percentage))
+                                                   str(scheduling_period),
+                                                   str(delta),
+                                                   str(resource_percentage))
         self.attributes = {'resource_type': resource_type,
                            'scheduling_period': int(scheduling_period),
                            'delta': float(delta),
