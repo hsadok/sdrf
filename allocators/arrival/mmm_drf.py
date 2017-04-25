@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-import heapq
 import numpy as np
 
 from allocators.arrival import Arrival
+from helpers.priority_queue import PriorityQueue
 
 
 # 3M_DRF
@@ -12,7 +12,7 @@ from allocators.arrival import Arrival
 # We assume capacities and users_resources remain constant
 class MMMDRF(Arrival):
     def __init__(self, capacities, users_resources, demands,
-                 initial_credibilities=None):
+                 initial_credibilities=None, delta=1.0):
         """
         :param capacities: array with capacities for each resource
         :param users_resources: array with users resources [users]x[resources]
@@ -20,36 +20,35 @@ class MMMDRF(Arrival):
         """
         super(MMMDRF, self).__init__(capacities, demands)
         self.user_resources = np.array(users_resources)
+        self.delta = delta
 
-        self.user_resources_heap = [(0.0, u) for u in xrange(self.num_users)]
-        heapq.heapify(self.user_resources_heap)
+        self.user_resources_queue = PriorityQueue(np.zeros(self.num_users))
 
         if initial_credibilities is None:
             self.credibilities = np.zeros((self.num_users, self.num_resources))
         else:
             self.credibilities = np.array(initial_credibilities)
 
-        self.user_credibilities_heap = [
-            (c, i) for i, c in enumerate(np.max(self.credibilities, axis=1))]
+        self.user_credibilities_queue = PriorityQueue(
+            np.max(self.credibilities, axis=1))
 
         self.allocation_history = []
 
     def _insert_user_resources_heap(self, user):
         # same as wDRF when user_resources/capacities are used as the weight
         res_left = np.max(self.allocations[user]/self.user_resources[user])
-        heapq.heappush(self.user_resources_heap, (res_left, user))
+        self.user_resources_queue.add(user, res_left)
 
     def _insert_user_cred_heap(self, user):
         dominant_share = np.max((self.allocations[user] -
                                  self.user_resources[user] -
                                  self.credibilities[user]) / self._capacities)
-        heapq.heappush(self.user_credibilities_heap, (dominant_share, user))
+        self.user_credibilities_queue.add(user, dominant_share)
 
     def _allocate_from_queue(self, queue, insert_function, user_fulfilment):
-        while len(queue) > 0:
-            try:
-                dominant_share, user = heapq.heappop(queue)
-            except IndexError:
+        while True:
+            user = queue.pop()
+            if user is None:
                 break
 
             user_demand = self._demands[user]
@@ -74,43 +73,50 @@ class MMMDRF(Arrival):
         return False
 
     def run_task(self):
-        allocated = self._allocate_from_queue(self.user_resources_heap,
+        allocated = self._allocate_from_queue(self.user_resources_queue,
                                               self._insert_user_resources_heap,
                                               True)
         if not allocated:
-            allocated = self._allocate_from_queue(self.user_credibilities_heap,
-                                                  self._insert_user_cred_heap,
-                                                  False)
+            allocated =self._allocate_from_queue(self.user_credibilities_queue,
+                                                 self._insert_user_cred_heap,
+                                                 False)
         return allocated
 
-
-
-
-
-
-
-
-
-
-
-
     def set_user_demand(self, user, demand):
-        # self._demands[user] = demand
-        # self._remove_user(user)
-        # if np.any(demand):  # nonzero demand for the user
-        #     self._insert_user(user)
-        # TODO
-        pass
+        self._demands[user] = demand
+        self.user_resources_queue.remove(user)
+        self.user_credibilities_queue.remove(user)
+        if np.any(demand):  # nonzero demand for the user
+            self._insert_user_resources_heap(user)
+            self._insert_user_cred_heap(user)
 
     def update(self, user):
         # TODO
         pass
 
     def finish_task(self, user, task_demands, num_tasks=1):
-        # TODO
+        for _ in xrange(num_tasks):
+            if self.consumed_resources < task_demands or \
+               self.allocations[user] < task_demands:
+                break
+            self.consumed_resources -= task_demands
+            self.allocations[user] -= task_demands
+            contributions = self.user_resources[user] - task_demands
+            # TODO WRONG!
+            damping = self.delta**self.task_durations[user]
+            self.credibilities[user] = damping * self.credibilities[user] + \
+                                       (1-damping) * contributions
+        # update credibility and reinsert user
         self.update(user)
 
-        pass
+        self.run_all_tasks()
+    pass
+    # the way I implemented the wDRF, when a task finishes we reinsert all hold
+    # user which is O(n*log(n)) (or just O(n) on some priority queues) I should
+    # check if the MESOS implementation also does it. If they do, well... life
+    # is easy just update every user credibility, if they don't we may use
+    # approximation techniques. One case or the other compare the outcomes of
+    # both strategies sounds nice.
 
 # Regime 1 - "private usage"
 # * keep track of the minimum difference between user usage and the resources

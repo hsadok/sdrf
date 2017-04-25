@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-import heapq
 import numpy as np
 
-from allocators.arrival import Arrival, remove_user_from_queue
+from allocators.arrival import Arrival
+from helpers.priority_queue import PriorityQueue
 
 
 # arrival allocations are simpler, they just decide which task to run based on
@@ -30,27 +30,22 @@ class WDRF(Arrival):
         """
         super(WDRF, self).__init__(capacities, demands)
         self.weights = np.array(weights)
-        self.dominant_share_heap = [(0.0, u) for u in xrange(self.num_users)]
-        heapq.heapify(self.dominant_share_heap)
+        self.dominant_share_queue = PriorityQueue(np.zeros(self.num_users))
         self.force = force
         self._hold_users = []  # keeps user when using "force"
         self.allocation_history = []
 
     def _user_with_lowest_dominant_share(self):
-        try:
-            dominant_share, user = heapq.heappop(self.dominant_share_heap)
-        except IndexError:
-            return None
-        return user
+        return self.dominant_share_queue.pop()
 
     def _insert_user(self, user):
         # we don't assume the user always has the same demand
         dominant_share = np.max(self.allocations[user] / self._capacities /
                                 self.weights[user])
-        heapq.heappush(self.dominant_share_heap, (dominant_share, user))
+        self.dominant_share_queue.add(user, dominant_share)
 
     def _remove_user(self, user):
-        remove_user_from_queue(user, self.dominant_share_heap)
+        self.dominant_share_queue.remove(user)
 
     def _unhold_users(self):
         for user in reversed(self._hold_users):
