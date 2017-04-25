@@ -29,11 +29,11 @@ type_events = defaultdict(deque)
 test_locker = threading.Lock()
 
 
-def aggregate_user_events(dataset_dir, save_dir):
+def aggregate_user_events(dataset_dir, saving_dir):
     schema = Schema(dataset_dir)
 
     saving_thread = threading.Thread(target=save_user_agg_events,
-                                     args=(save_dir,))
+                                     args=(saving_dir,))
     saving_thread.start()
 
     files = sorted(listdir(path.join(dataset_dir, 'task_events')))
@@ -42,7 +42,8 @@ def aggregate_user_events(dataset_dir, save_dir):
         print 'file %i of %i' % (i+1, len(files))
         task_events_df = pd.read_csv(path.join(dataset_dir, 'task_events', f),
                                      header=None, index_col=False,
-                                     compression='gzip', names=schema.task_events)
+                                     compression='gzip',
+                                     names=schema.task_events)
         print task_events_df.shape
 
         for index, event in task_events_df.iterrows():
@@ -56,7 +57,7 @@ def aggregate_user_events(dataset_dir, save_dir):
             if event_type == 0:  # new event
                 type_events[user].append(event_summary(event))
             elif 2 <= event_type <= 6:
-                type_events[user].append(event_summary(event,invert=True))
+                type_events[user].append(event_summary(event, invert=True))
             type_events_locks[user].release()
             test_locker.release()
 

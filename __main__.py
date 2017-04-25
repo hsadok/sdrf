@@ -9,7 +9,7 @@ def cli():
 
 
 @cli.command(help='Separate cpu & memory requests for each user.')
-@click.argument('dataset_path', type=click.Path(exists=True, file_okay=False,
+@click.argument('dataset_dir', type=click.Path(exists=True, file_okay=False,
                                                 readable=True))
 @click.argument('saving_dir', type=click.Path(exists=True, file_okay=False,
                                               writable=True))
