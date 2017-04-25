@@ -14,3 +14,16 @@ class Schema:
         file_pattern_select = schema[schema['file pattern'].str.contains(name)]
         file_pattern_content = file_pattern_select['content'].tolist()
         return file_pattern_content
+
+
+class SchemaIndex(dict):
+    def __init__(self, schema, **kwargs):
+        super(SchemaIndex, self).__init__(**kwargs)
+        # self.schema =
+        self.schema = schema
+        self['index'] = 0
+
+    def __missing__(self, key):
+        index = self.schema.index(key) + 1
+        self[key] = index
+        return index
