@@ -18,6 +18,17 @@ def aggregate_user_events(*args, **kwargs):
     aggregate_user_events(*args, **kwargs)
 
 
+@cli.command(help='Filter problematic tasks.')
+@click.argument('dataset_dir', type=click.Path(exists=True, file_okay=False,
+                                                readable=True))
+@click.argument('saving_file', type=click.Path(file_okay=True, writable=True,
+                                               dir_okay=False))
+def filter_tasks(*args, **kwargs):
+    from tasks.filter_tasks import FilterTasks
+    ft = FilterTasks(*args, **kwargs)
+    ft.filter_tasks()
+
+
 @cli.command(help='Aggregate requests in the same timestamp.')
 @click.argument('dataset_path', type=click.Path(exists=True, file_okay=False,
                                                 readable=True))
