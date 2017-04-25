@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-from allocators.arrival import Arrival
+from allocators.arrival import Arrival, Task
 from helpers.priority_queue import PriorityQueue
 
 
@@ -31,8 +31,6 @@ class MMMDRF(Arrival):
 
         self.user_credibilities_queue = PriorityQueue(
             np.max(self.credibilities, axis=1))
-
-        self.allocation_history = []
 
     def _insert_user_resources_heap(self, user):
         # same as wDRF when user_resources/capacities are used as the weight
@@ -64,23 +62,25 @@ class MMMDRF(Arrival):
                 user_fulfills_request = True
 
             if system_fulfills_request and user_fulfills_request:
-                self.consumed_resources += user_demand
-                self.allocations[user] += user_demand
                 insert_function(user)
-                self.allocation_history.append(self.allocations.copy())
-                return True
+                finish_time = self.current_time + self._duration[user]
+                return Task(user, finish_time, user_demand)
 
-        return False
+        return None
 
-    def run_task(self):
-        allocated = self._allocate_from_queue(self.user_resources_queue,
-                                              self._insert_user_resources_heap,
-                                              True)
-        if not allocated:
-            allocated =self._allocate_from_queue(self.user_credibilities_queue,
-                                                 self._insert_user_cred_heap,
-                                                 False)
-        return allocated
+    def pick_task(self):
+        def alloc_from_resources():
+            return self._allocate_from_queue(self.user_resources_queue,
+                                             self._insert_user_resources_heap,
+                                             True)
+
+        def alloc_from_cred():
+            return self._allocate_from_queue(self.user_credibilities_queue,
+                                             self._insert_user_cred_heap,
+                                             False)
+
+        task = alloc_from_resources() or alloc_from_cred()
+        return task
 
     def set_user_demand(self, user, demand):
         self._demands[user] = demand
@@ -89,10 +89,6 @@ class MMMDRF(Arrival):
         if np.any(demand):  # nonzero demand for the user
             self._insert_user_resources_heap(user)
             self._insert_user_cred_heap(user)
-
-    def update(self, user):
-        # TODO
-        pass
 
     def finish_task(self, user, task_demands, num_tasks=1):
         for _ in xrange(num_tasks):
@@ -110,12 +106,12 @@ class MMMDRF(Arrival):
         self.update(user)
 
         self.run_all_tasks()
-    pass
+
     # the way I implemented the wDRF, when a task finishes we reinsert all hold
     # user which is O(n*log(n)) (or just O(n) on some priority queues) I should
     # check if the MESOS implementation also does it. If they do, well... life
     # is easy just update every user credibility, if they don't we may use
-    # approximation techniques. One case or the other compare the outcomes of
+    # approximation techniques. One case or the other comparing the outcomes of
     # both strategies sounds nice.
 
 # Regime 1 - "private usage"

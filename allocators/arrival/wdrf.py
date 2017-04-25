@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-from allocators.arrival import Arrival
+from allocators.arrival import Arrival, Task
 from helpers.priority_queue import PriorityQueue
 
 
@@ -33,7 +33,6 @@ class WDRF(Arrival):
         self.dominant_share_queue = PriorityQueue(np.zeros(self.num_users))
         self.force = force
         self._hold_users = []  # keeps user when using "force"
-        self.allocation_history = []
 
     def _user_with_lowest_dominant_share(self):
         return self.dominant_share_queue.pop()
@@ -51,23 +50,21 @@ class WDRF(Arrival):
         for user in reversed(self._hold_users):
             self._insert_user(user)
 
-    def run_task(self):
+    def pick_task(self):
         user = self._user_with_lowest_dominant_share()
         if user is None:
-            return False
+            return None
         user_demand = self._demands[user]
         if np.all(self.consumed_resources + user_demand <= self._capacities):
-            self.consumed_resources += user_demand
-            self.allocations[user] += user_demand
             self._insert_user(user)
-            self.allocation_history.append(self.allocations.copy())
-            return True
+            finish_time = self.current_time + self._duration[user]
+            return Task(user, finish_time, user_demand)
         elif self.force:
             self._hold_users.append(user)
-            return self.run_task()
+            return self.pick_task()
         else:
             self._insert_user(user)
-            return False
+            return None
 
     def set_user_demand(self, user, demand):
         self._demands[user] = demand
