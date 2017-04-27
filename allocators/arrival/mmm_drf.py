@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-from allocators.arrival import Arrival, Task
+from allocators.arrival import Arrival
 from helpers.priority_queue import PriorityQueue
 
 
@@ -11,14 +11,14 @@ from helpers.priority_queue import PriorityQueue
 # there must be a separate credibility for each resource and user
 # We assume capacities and users_resources remain constant
 class MMMDRF(Arrival):
-    def __init__(self, capacities, users_resources, demands,
-                 initial_credibilities=None, delta=1.0):
+    def __init__(self, capacities, users_resources, initial_credibilities=None,
+                 delta=1.0):
         """
         :param capacities: array with capacities for each resource
         :param users_resources: array with users resources [users]x[resources]
         :param demands: array with demands for each user [users]x[resources]
         """
-        super(MMMDRF, self).__init__(capacities, demands)
+        super(MMMDRF, self).__init__(capacities,num_users=len(users_resources))
         self.user_resources = np.array(users_resources)
         self.delta = delta
 
@@ -30,7 +30,7 @@ class MMMDRF(Arrival):
             self.credibilities = np.array(initial_credibilities)
 
         self.user_credibilities_queue = PriorityQueue(
-            np.max(self.credibilities, axis=1))
+            np.max(self.credibilities, axis=1))  # TODO check if it makes sense
 
     def _insert_user_resources_heap(self, user):
         # same as wDRF when user_resources/capacities are used as the weight
@@ -49,22 +49,24 @@ class MMMDRF(Arrival):
             if user is None:
                 break
 
-            user_demand = self._demands[user]
+            if not self.users_queues[user]:
+                continue
+
+            task = self.users_queues[user][0]
             user_allocation = self.allocations[user]
 
             system_fulfills_request = np.all(
-                self.consumed_resources + user_demand <= self._capacities)
+                self.consumed_resources + task.demands <= self._capacities)
 
             if user_fulfilment:  # TODO HACK...
                 user_fulfills_request = np.all(
-                    user_allocation + user_demand <= self.user_resources)
+                    user_allocation + task.demands <= self.user_resources)
             else:
                 user_fulfills_request = True
 
             if system_fulfills_request and user_fulfills_request:
-                insert_function(user)
-                finish_time = self.current_time + self._duration[user]
-                return Task(user, finish_time, user_demand)
+                self.run_after_task = lambda: insert_function(user)
+                return self.users_queues[user].pop()
 
         return None
 
@@ -82,15 +84,8 @@ class MMMDRF(Arrival):
         task = alloc_from_resources() or alloc_from_cred()
         return task
 
-    def set_user_demand(self, user, demand):
-        self._demands[user] = demand
-        self.user_resources_queue.remove(user)
-        self.user_credibilities_queue.remove(user)
-        if np.any(demand):  # nonzero demand for the user
-            self._insert_user_resources_heap(user)
-            self._insert_user_cred_heap(user)
-
     def finish_task(self, user, task_demands, num_tasks=1):
+        raise NotImplementedError()
         for _ in xrange(num_tasks):
             if self.consumed_resources < task_demands or \
                self.allocations[user] < task_demands:
@@ -99,13 +94,11 @@ class MMMDRF(Arrival):
             self.allocations[user] -= task_demands
             contributions = self.user_resources[user] - task_demands
             # TODO WRONG!
-            damping = self.delta**self.task_durations[user]
+            damping = self.delta ** self._duration[user]
             self.credibilities[user] = damping * self.credibilities[user] + \
                                        (1-damping) * contributions
         # update credibility and reinsert user
         self.update(user)
-
-        self.run_all_tasks()
 
     # the way I implemented the wDRF, when a task finishes we reinsert all hold
     # user which is O(n*log(n)) (or just O(n) on some priority queues) I should

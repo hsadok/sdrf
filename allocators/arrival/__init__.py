@@ -7,10 +7,12 @@ from helpers.priority_queue import PriorityQueue
 
 
 class Task(object):
-    def __init__(self, user, finish_time, demands):
+    def __init__(self, user, duration, demands, submit_time=0):
         self.user = user
-        self.finish_time = finish_time
+        self.duration = duration
         self.demands = demands
+        self.submit_time = submit_time
+        self.finish_time = None
         self.count = Task._counter.next()
 
     _counter = itertools.count()
@@ -23,11 +25,10 @@ class Task(object):
 
 
 class Arrival(object):
-    def __init__(self, capacities, demands):
+    def __init__(self, capacities, num_users):
         self.num_resources = len(capacities)
-        self.num_users = len(demands)
+        self.num_users = num_users
         self._capacities = np.array(capacities)
-        self._demands = np.array(demands)
         self.consumed_resources = np.zeros(self.num_resources)
         self.allocations = np.zeros((self.num_users, self.num_resources))
         self.users_queues = defaultdict(deque)
@@ -39,6 +40,9 @@ class Arrival(object):
     def pick_task(self):
         raise NotImplementedError()
 
+    def run_after_task(self):
+        return
+
     def run_task(self):
         task = self.pick_task()
         if task is None:
@@ -47,31 +51,39 @@ class Arrival(object):
         self.consumed_resources += task.demands
         self.allocations[task.user] += task.demands
         self.allocation_history.append(self.allocations.copy())
+        task.finish_time = self.current_time + task.duration
         self.running_tasks.add(task, task.finish_time)
+        self.run_after_task()
         return True
 
     def run_all_tasks(self):
         while self.run_task():
             pass
 
-    def set_user_demand(self, user, demand):
-        self._demands[user] = demand
-
     def finish_task(self, user, task_demands, num_tasks=1):
         raise NotImplementedError()
 
-    def add_to_queue(self, user, submit_time, duration, task_demands):
+    def simulate(self, tasks, simulation_limit=None):
+        if simulation_limit is None:
+            simulation_limit = np.inf
+        for task in tasks:
+            if task.submit_time > self.current_time:
+                self.run_all_tasks()
+                self._finish_tasks_until(min(simulation_limit,
+                                             task.submit_time))
+                self.current_time = task.submit_time
+            if task.submit_time > simulation_limit:
+                return
+            self.users_queues[task.user].append(task)
+        self._finish_tasks_until(simulation_limit)
+
+    def _finish_tasks_until(self, next_time):
         while True:
             next_task = self.running_tasks.get_min()
-            if next_task is None or next_task.finish_time > submit_time:
+            if next_task is None or next_task.finish_time > next_time:
                 break
-
             self.finish_task(next_task.user, next_task.demands)
+            self.consumed_resources -= next_task.demands
+            self.allocations[next_task.user] -= next_task.demands
             self.running_tasks.pop()
-
-        self.users_queues[user].append((duration, task_demands))
-        # termination queue
-
-    @property
-    def _duration(self):  # TODO get actual duration
-        return defaultdict(float)
+            self.run_all_tasks()

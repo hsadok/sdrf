@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-from allocators.arrival import Arrival, Task
+from allocators.arrival import Arrival
 from helpers.priority_queue import PriorityQueue
 
 
@@ -19,7 +19,7 @@ from helpers.priority_queue import PriorityQueue
 
 
 class WDRF(Arrival):
-    def __init__(self, capacities, weights, demands, force=True):
+    def __init__(self, capacities, weights, force=True):
         """
         :param capacities: array with capacities for each resource
         :param weights: each user's and resource weight
@@ -28,7 +28,7 @@ class WDRF(Arrival):
         allocation demand that fits -- even if its user doesn't have the
         smallest dominant share.
         """
-        super(WDRF, self).__init__(capacities, demands)
+        super(WDRF, self).__init__(capacities, num_users=len(weights))
         self.weights = np.array(weights)
         self.dominant_share_queue = PriorityQueue(np.zeros(self.num_users))
         self.force = force
@@ -54,11 +54,17 @@ class WDRF(Arrival):
         user = self._user_with_lowest_dominant_share()
         if user is None:
             return None
-        user_demand = self._demands[user]
-        if np.all(self.consumed_resources + user_demand <= self._capacities):
-            self._insert_user(user)
-            finish_time = self.current_time + self._duration[user]
-            return Task(user, finish_time, user_demand)
+
+        def can_allocate_resource():
+            if self.users_queues[user]:
+                user_demand = self.users_queues[user][0].demands
+                consumed_with_task = self.consumed_resources + user_demand
+                return np.all(consumed_with_task <= self._capacities)
+            return False
+
+        if can_allocate_resource():
+            self.run_after_task = lambda: self._insert_user(user)
+            return self.users_queues[user].pop()
         elif self.force:
             self._hold_users.append(user)
             return self.pick_task()
@@ -66,20 +72,10 @@ class WDRF(Arrival):
             self._insert_user(user)
             return None
 
-    def set_user_demand(self, user, demand):
-        self._demands[user] = demand
-        self._remove_user(user)
-        if np.any(demand):  # nonzero demand for the user
-            self._insert_user(user)
-
     def finish_task(self, user, task_demands, num_tasks=1):
         for _ in xrange(num_tasks):
             if self.consumed_resources < task_demands or \
                self.allocations[user] < task_demands:
                 break
-            self.consumed_resources -= task_demands
-            self.allocations[user] -= task_demands
         self._remove_user(user)
         self._insert_user(user)
-        self._unhold_users()
-        self.run_all_tasks()
