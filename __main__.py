@@ -89,7 +89,7 @@ def multicore_simulate_allocation(dataset_file, saving_dir, config_file):
 @click.argument('data_path',
                 type=click.Path(exists=True, file_okay=False, readable=True))
 def experiments(data_path):
-    import allocation_analysis.experiments2 as exp
+    import analysis.experiments2 as exp
     exp.request_fulfilment(data_path)
     exp.resource_vs_utility(data_path)
     exp.allocation_smoothness(data_path)
