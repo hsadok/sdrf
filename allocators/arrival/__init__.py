@@ -7,15 +7,22 @@ from helpers.priority_queue import PriorityQueue
 
 
 class Task(object):
-    def __init__(self, user, duration, demands, submit_time=0):
-        self.user = user
+    def __init__(self, user_id, task_id, duration, demands, submit_time):
+        self.user_id = user_id
+        self.task_id = task_id
+        self.user = Task._user_index[user_id]
         self.duration = duration
         self.demands = demands
+        self.cpu = demands[0]
+        self.memory = demands[1]
         self.submit_time = submit_time
+        self.start_time = None
         self.finish_time = None
         self.count = Task._counter.next()
 
     _counter = itertools.count()
+    _user_index_generator = itertools.count()
+    _user_index = defaultdict(_user_index_generator.next)
 
     def __hash__(self):
         return hash(self.count)
@@ -23,17 +30,29 @@ class Task(object):
     def __eq__(self, other):
         return self.count == other.count
 
+    def __getitem__(self, key):
+        return self.__dict__[key]  # gets KeyError exception when invalid
 
+
+# Simulates a task arrival process
+# The simulate method takes a task generator, this task generator also controls
+# the simulation pace -- events only happen when a task finishes or a task
+# arrives. The time the system takes to make an allocation decision is
+# considered negligible. Tasks that finished their execution are appended to
+# the finished_tasks deque with the submit, start and finish times as well as
+# the amount of CPU and memory used. This queue can be inspected after the
+# simulation is complete or, even better, while it's still running.
 class Arrival(object):
     def __init__(self, capacities, num_users):
         self.num_resources = len(capacities)
         self.num_users = num_users
-        self._capacities = np.array(capacities)
+        self._capacities = np.array(capacities, dtype=float)
         self.consumed_resources = np.zeros(self.num_resources)
         self.allocations = np.zeros((self.num_users, self.num_resources))
         self.users_queues = defaultdict(deque)
         self.running_tasks = PriorityQueue()
         self.current_time = 0.0
+        self.finished_tasks = deque()
 
         self.allocation_history = []
 
@@ -41,7 +60,7 @@ class Arrival(object):
         raise NotImplementedError()
 
     def run_after_task(self):
-        return
+        pass
 
     def run_task(self):
         task = self.pick_task()
@@ -52,6 +71,7 @@ class Arrival(object):
         self.allocations[task.user] += task.demands
         self.allocation_history.append(self.allocations.copy())
         task.finish_time = self.current_time + task.duration
+        task.start_time = self.current_time
         self.running_tasks.add(task, task.finish_time)
         self.run_after_task()
         return True
@@ -85,5 +105,5 @@ class Arrival(object):
             self.finish_task(next_task.user, next_task.demands)
             self.consumed_resources -= next_task.demands
             self.allocations[next_task.user] -= next_task.demands
-            self.running_tasks.pop()
+            self.finished_tasks.append(self.running_tasks.pop())
             self.run_all_tasks()
