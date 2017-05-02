@@ -24,9 +24,18 @@ def aggregate_user_events(*args, **kwargs):
 @click.argument('saving_file', type=click.Path(file_okay=True, writable=True,
                                                dir_okay=False))
 def filter_tasks(*args, **kwargs):
-    from tasks.filter_tasks import FilterTasks
-    ft = FilterTasks(*args, **kwargs)
-    ft.filter_tasks()
+    from tasks.filter_tasks import filter_tasks
+    filter_tasks(*args, **kwargs)
+
+
+@cli.command(help='System utilization with filtered tasks.')
+@click.argument('tasks_file', type=click.Path(exists=True, file_okay=True,
+                                              dir_okay=False, readable=True))
+@click.argument('saving_file', type=click.Path(file_okay=True, writable=True,
+                                               dir_okay=False))
+def system_utilization(*args, **kwargs):
+    from tasks.system_utilization import utilization_over_time
+    utilization_over_time(*args, **kwargs)
 
 
 @cli.command(help='Aggregate requests in the same timestamp.')
