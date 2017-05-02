@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 sudo apt-get update
-sudo apt-get install -y python-dev python-pip
+sudo apt-get install -y python-dev python-pip python-tk
 
 sudo pip install virtualenv
 sudo pip install virtualenvwrapper
