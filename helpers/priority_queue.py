@@ -16,6 +16,8 @@ class PriorityQueue(object):
 
     def add(self, name, priority):
         if name in self.finder:
+            if priority == self.finder[name][0]:
+                return
             self.remove(name)
         entry = [priority, name]
         self.finder[name] = entry
