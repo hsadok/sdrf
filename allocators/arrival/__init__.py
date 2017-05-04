@@ -43,7 +43,7 @@ class Task(object):
 # the amount of CPU and memory used. This queue can be inspected after the
 # simulation is complete or, even better, while it's still running.
 class Arrival(object):
-    def __init__(self, capacities, num_users):
+    def __init__(self, capacities, num_users, keep_history=False):
         self.num_resources = len(capacities)
         self.num_users = num_users
         self._capacities = np.array(capacities, dtype=float)
@@ -54,13 +54,16 @@ class Arrival(object):
         self.current_time = 0.0
         self.finished_tasks = deque()
 
-        self.allocation_history = []
+        if keep_history:
+            self.allocation_history = []
+        else:
+            self.allocation_history = None
 
     def pick_task(self):
         raise NotImplementedError()
 
-    def run_after_task(self):
-        pass
+    def _insert_user(self, user):
+        raise NotImplementedError()
 
     def run_task(self):
         task = self.pick_task()
@@ -69,41 +72,66 @@ class Arrival(object):
 
         self.consumed_resources += task.demands
         self.allocations[task.user] += task.demands
-        self.allocation_history.append(self.allocations.copy())
+        if self.allocation_history is not None:
+            self.allocation_history.append(self.allocations.copy())
         task.finish_time = self.current_time + task.duration
         task.start_time = self.current_time
         self.running_tasks.add(task, task.finish_time)
-        self.run_after_task()
+        self._insert_user(task.user)
         return True
 
     def run_all_tasks(self):
         while self.run_task():
             pass
 
-    def finish_task(self, user, task_demands, num_tasks=1):
+    def finish_task(self, task):
         raise NotImplementedError()
 
     def simulate(self, tasks, simulation_limit=None):
         if simulation_limit is None:
             simulation_limit = np.inf
         for task in tasks:
-            if task.submit_time > self.current_time:
-                self.run_all_tasks()
-                self._finish_tasks_until(min(simulation_limit,
-                                             task.submit_time))
-                self.current_time = task.submit_time
             if task.submit_time > simulation_limit:
+                self._finish_tasks_until(simulation_limit)
                 return
+            if task.submit_time > self.current_time:
+                self._finish_tasks_until(task.submit_time)
+                self.current_time = task.submit_time
+            self._insert_user(task.user)
             self.users_queues[task.user].append(task)
         self._finish_tasks_until(simulation_limit)
 
     def _finish_tasks_until(self, next_time):
         while True:
+            self.run_all_tasks()
             next_task = self.running_tasks.get_min()
             if next_task is None or next_task.finish_time > next_time:
                 break
-            self.finish_task(next_task.user, next_task.demands)
+            self.current_time = next_task.finish_time
             self.consumed_resources -= next_task.demands
             self.allocations[next_task.user] -= next_task.demands
             self.finished_tasks.append(self.running_tasks.pop())
-            self.run_all_tasks()
+            self.finish_task(next_task)
+
+    def _pick_from_queue(self, queue, constraints=None):
+        while True:
+            user = queue.pop()
+            if user is None:
+                break
+
+            if not self.users_queues[user]:
+                continue
+
+            task = self.users_queues[user][0]
+
+            system_fulfills_request = np.all(
+                self.consumed_resources + task.demands <= self._capacities)
+
+            if constraints is None:
+                pass_constraints = True
+            else:
+                pass_constraints = constraints(task)
+
+            if system_fulfills_request and pass_constraints:
+                return self.users_queues[user].pop()
+        return None

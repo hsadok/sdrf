@@ -9,16 +9,16 @@ from helpers.priority_queue import PriorityQueue
 # the 3M allocation must only come into action when users already reached 1/n
 # of resource utilization for their dominant resource
 # there must be a separate credibility for each resource and user
-# We assume capacities and users_resources remain constant
 class MMMDRF(Arrival):
     def __init__(self, capacities, users_resources, initial_credibilities=None,
-                 delta=1.0):
+                 delta=1.0, keep_history=False):
         """
         :param capacities: array with capacities for each resource
         :param users_resources: array with users resources [users]x[resources]
         :param demands: array with demands for each user [users]x[resources]
         """
-        super(MMMDRF, self).__init__(capacities,num_users=len(users_resources))
+        super(MMMDRF, self).__init__(capacities, len(users_resources),
+                                     keep_history)
         self.user_resources = np.array(users_resources)
         self.delta = delta
 
@@ -35,7 +35,10 @@ class MMMDRF(Arrival):
     def _insert_user_resources_heap(self, user):
         # same as wDRF when user_resources/capacities are used as the weight
         res_left = np.max(self.allocations[user]/self.user_resources[user])
-        self.user_resources_queue.add(user, res_left)
+
+        # don't bother adding when users are using more than they have
+        if res_left < 1:
+            self.user_resources_queue.add(user, res_left)
 
     def _insert_user_cred_heap(self, user):
         dominant_share = np.max((self.allocations[user] -
@@ -43,59 +46,36 @@ class MMMDRF(Arrival):
                                  self.credibilities[user]) / self._capacities)
         self.user_credibilities_queue.add(user, dominant_share)
 
-    def _allocate_from_queue(self, queue, insert_function, user_fulfilment):
-        while True:
-            user = queue.pop()
-            if user is None:
-                break
-
-            if not self.users_queues[user]:
-                continue
-
-            task = self.users_queues[user][0]
-            user_allocation = self.allocations[user]
-
-            system_fulfills_request = np.all(
-                self.consumed_resources + task.demands <= self._capacities)
-
-            if user_fulfilment:  # TODO HACK...
-                user_fulfills_request = np.all(
-                    user_allocation + task.demands <= self.user_resources)
-            else:
-                user_fulfills_request = True
-
-            if system_fulfills_request and user_fulfills_request:
-                self.run_after_task = lambda: insert_function(user)
-                return self.users_queues[user].pop()
-
-        return None
+    def _insert_user(self, user):
+        self._insert_user_resources_heap(user)
+        self._insert_user_cred_heap(user)
 
     def pick_task(self):
-        def alloc_from_resources():
-            return self._allocate_from_queue(self.user_resources_queue,
-                                             self._insert_user_resources_heap,
-                                             True)
+        def user_fulfills_request(task):
+            user_alloc = self.allocations[task.user]
+            return np.all(user_alloc + task.demands <= self.user_resources)
 
-        def alloc_from_cred():
-            return self._allocate_from_queue(self.user_credibilities_queue,
-                                             self._insert_user_cred_heap,
-                                             False)
+        def pick_from_resources():
+            return self._pick_from_queue(self.user_resources_queue,
+                                         user_fulfills_request)
 
-        task = alloc_from_resources() or alloc_from_cred()
-        return task
+        def pick_from_cred():
+            return self._pick_from_queue(self.user_credibilities_queue)
 
-    def finish_task(self, user, task_demands, num_tasks=1):
-        raise NotImplementedError()
-        for _ in xrange(num_tasks):
-            if self.consumed_resources < task_demands or \
-               self.allocations[user] < task_demands:
-                break
-            self.consumed_resources -= task_demands
-            self.allocations[user] -= task_demands
-            contributions = self.user_resources[user] - task_demands
-            # TODO WRONG!
-            damping = self.delta ** self._duration[user]
-            self.credibilities[user] = damping * self.credibilities[user] + \
+        picked_task = pick_from_resources() or pick_from_cred()
+        return picked_task
+
+    def finish_task(self, task):
+        raise NotImplementedError()  # TODO here is the time to reinsert users
+        if self.consumed_resources < task_demands or \
+           self.allocations[user] < task_demands:
+            return
+        self.consumed_resources -= task_demands
+        self.allocations[user] -= task_demands
+        contributions = self.user_resources[user] - task_demands
+        # TODO WRONG!
+        damping = self.delta ** self._duration[user]
+        self.credibilities[user] = damping * self.credibilities[user] + \
                                        (1-damping) * contributions
         # update credibility and reinsert user
         self.update(user)
