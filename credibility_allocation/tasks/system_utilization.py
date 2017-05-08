@@ -4,6 +4,7 @@ from collections import deque
 import pandas as pd
 import numpy as np
 from progress.bar import Bar
+from tqdm import tqdm
 import matplotlib; matplotlib.use('PDF')
 import matplotlib.pyplot as plt
 
@@ -18,7 +19,7 @@ def utilization_over_time(tasks_file, saving_file):
     task_index = SchemaIndex(tasks_file_header)
     events = deque()
     print 'processing lines...'
-    for task_line in tasks_df.itertuples():
+    for task_line in tqdm(tasks_df.itertuples(), total=len(tasks_df)):
         start_time = task_line[task_index['start_time']]
         finish_time = task_line[task_index['finish_time']]
         cpu = task_line[task_index['cpu']]
@@ -26,13 +27,13 @@ def utilization_over_time(tasks_file, saving_file):
         events.append((start_time, cpu, memory))
         events.append((finish_time, -cpu, -memory))
 
+    del tasks_df
     events = sorted(events)
     first_event = events.pop(0)
     aggregated_time = deque([first_event[0]])
     aggregated_cpu = deque([first_event[1]])
     aggregated_memory = deque([first_event[2]])
-    for t, c, m in Bar('Processing', suffix='%(percent)d%%',
-                       max=len(events)).iter(events):
+    for t, c, m in tqdm(events, total=len(events)):
         if t == aggregated_time[-1]:
             aggregated_cpu[-1] += c
             aggregated_memory[-1] += m

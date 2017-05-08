@@ -1,5 +1,6 @@
 import click
 import json
+import sys
 import ConfigParser as configparser
 
 
@@ -73,6 +74,57 @@ def simulate_allocation(*args, **kwargs):
     simulate_allocation(*args, **kwargs)
 
 
+@cli.command(help='Simulate task allocation using a TASKS_FILE generated with '
+                  'the filter_tasks subcommand. Result is saved to the same di'
+                  'rectory or to SAVING_PATH.')
+@click.argument('tasks_file', type=click.Path(exists=True, file_okay=True,
+                                              dir_okay=False, readable=True))
+@click.argument('saving_path', type=click.Path(file_okay=True, dir_okay=True,
+                                               writable=True), required=False)
+@click.option('--allocator', '-a', type=click.Choice(['wdrf', '3mdrf']),
+              default='3mdrf', help='Allocator to use (defaults to 3mdrf).')
+@click.option('--config', '-c', type=click.Path(exists=True, file_okay=True,
+                                                dir_okay=False, readable=True),
+              help='Configuration file to use.')
+@click.option('--delta', '-d', type=click.FLOAT, multiple=True,
+              help='Delta to be used by 3M-DRF. When more than one value is pr'
+                   'ovided, a simulation is run for each.')
+@click.option('--resource', '-r', type=click.FLOAT, multiple=True,
+              help='Percentage of resources used by the user provided in the s'
+                   'imulation, i.e. if a user in the dataset has an average us'
+                   'age of 2 resources per hour and this option is 1.1, we giv'
+                   'e this user 2.2 resources as their own. When more than one'
+                   ' value is provided, a simulation is run for each.')
+def simulate_task_allocation(tasks_file, saving_path, allocator, config, delta,
+                             resource):
+    if (not config) and (not resource):
+        print('Must provide a config file or at least one resource percentage')
+        sys.exit(1)
+    if allocator == '3mdrf' and (not config) and (not delta):
+        print('Must provide a config file or at least one delta')
+        sys.exit(2)
+
+    if config:
+        conf_parser = configparser.ConfigParser()
+        conf_parser.read(config)
+        try:
+            resource = json.loads(conf_parser.get('config', 'resources'))
+            if allocator == '3mdrf':
+                delta = json.loads(conf_parser.get('config', 'deltas'))
+        except configparser.NoOptionError as e:
+            print ('No option "%s" found in the config file.' % e.option)
+            sys.exit(3)
+
+    saving_path = saving_path or '.'
+
+    if allocator == 'wdrf':
+        from simulators.simulate_task_allocation import wdrf
+        wdrf(tasks_file, saving_path, resource)
+    elif allocator == '3mdrf':
+        from simulators.simulate_task_allocation import mmm_drf
+        mmm_drf(tasks_file, saving_path, resource, delta)
+
+
 @cli.command(help='Simulate allocation using multiple cores.')
 @click.argument('dataset_file', type=click.Path(exists=True, file_okay=True,
                                                 dir_okay=False, readable=True))
@@ -85,9 +137,9 @@ def multicore_simulate_allocation(dataset_file, saving_dir, config_file):
         multicore_simulate_allocation
     config = configparser.ConfigParser()
     config.read(config_file)
-    estimate_memory_usage = config.getint("config", "estimate_memory_usage")
-    deltas = json.loads(config.get("config", "deltas"))
-    resource_percentages = json.loads(config.get("config", "resources"))
+    estimate_memory_usage = config.getint('config', 'estimate_memory_usage')
+    deltas = json.loads(config.get('config', 'deltas'))
+    resource_percentages = json.loads(config.get('config', 'resources'))
 
     multicore_simulate_allocation(dataset_file, saving_dir,
                                   estimate_memory_usage, deltas,

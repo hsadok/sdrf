@@ -21,6 +21,15 @@ class FileName(object):
                            'delta': float(delta),
                            'resource_percentage': float(resource_percentage)}
 
+    def task_sim(self, allocator, resource_percentage, delta=0):
+        if self.name is None:
+            self.name = 'task_sim-%s-%s-%s.csv' % (allocator,
+                                                   str(resource_percentage),
+                                                   str(delta))
+        self.attributes = {'allocator': allocator,
+                           'resource_percentage': float(resource_percentage),
+                           'delta': float(delta)}
+
     def credibility(self, resource_type, scheduling_period, delta,
                     resource_percentage):
         if self.name is None:
