@@ -3,13 +3,19 @@ from collections import deque
 
 import pandas as pd
 import numpy as np
-from progress.bar import Bar
 from tqdm import tqdm
 import matplotlib; matplotlib.use('PDF')
 import matplotlib.pyplot as plt
 
-from helpers.schema import SchemaIndex
-from tasks import tasks_file_header
+from mmmalloc.helpers.schema import SchemaIndex
+from mmmalloc.tasks import tasks_file_header
+
+
+def df_mean(df, column):
+    period = df.index[-1] - df.index[0]
+    x = df.index
+    y = df[column].as_matrix()
+    return np.sum(np.diff(x) * y[:-1]) / period
 
 
 def utilization_over_time(tasks_file, saving_file):
@@ -49,13 +55,13 @@ def utilization_over_time(tasks_file, saving_file):
     del aggregated_memory
 
     print 'max CPU utilization: ', np.max(cum_cpu)
-    print 'mean CPU utilization: ', np.mean(cum_cpu)
     print 'max memory utilization: ', np.max(cum_memory)
-    print 'mean memory utilization: ', np.mean(cum_memory)
 
     dt_time = pd.to_datetime(list(aggregated_time), unit='us')
 
     df = pd.DataFrame({'cpu': cum_cpu, 'memory': cum_memory}, index=dt_time)
+    print 'mean CPU utilization: ', df_mean(df, 'cpu')
+    print 'mean memory utilization: ', df_mean(df, 'memory')
     df = df.resample('1T').mean()
     df.fillna(method='pad', inplace=True)
     plt.figure(figsize=(8, 4))

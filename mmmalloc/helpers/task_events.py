@@ -3,7 +3,7 @@ from os import listdir, path
 import pandas as pd
 from progress.bar import Bar
 
-from helpers.schema import Schema
+from mmmalloc.helpers.schema import Schema
 
 
 def task_events(dataset_dir, progress=False):

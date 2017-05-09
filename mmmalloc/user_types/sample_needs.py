@@ -5,7 +5,7 @@ from progress.bar import Bar
 import pandas as pd
 import numpy as np
 
-from helpers.file_name import FileName
+from mmmalloc.helpers.file_name import FileName
 
 
 def sample_needs(dataset_path, saving_dir, scheduling_period, resource_type,

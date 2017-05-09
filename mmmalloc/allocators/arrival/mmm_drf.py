@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-from allocators.arrival import Arrival
-from helpers.priority_queue import PriorityQueue
+from mmmalloc.allocators.arrival import Arrival
+from mmmalloc.helpers.priority_queue import PriorityQueue
 
 
 # 3M_DRF

@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 import threading
 import pandas as pd
+import numpy as np
 from tqdm import tqdm
 from os import path
 
-from allocators.arrival import Task
-from allocators.arrival.wdrf import WDRF
-from allocators.arrival.mmm_drf import MMMDRF
-from helpers.file_name import FileName
-from tasks import tasks_file_header, save_task_deque
-from helpers.schema import SchemaIndex
+from mmmalloc.allocators.arrival import Task
+from mmmalloc.allocators.arrival.wdrf import WDRF
+from mmmalloc.allocators.arrival.mmm_drf import MMMDRF
+from mmmalloc.helpers.file_name import FileName
+from mmmalloc.tasks import tasks_file_header, save_task_deque
+from mmmalloc.helpers.schema import SchemaIndex
 
 
 def tasks_generator(tasks_df):

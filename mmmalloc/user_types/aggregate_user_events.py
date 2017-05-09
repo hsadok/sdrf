@@ -2,7 +2,7 @@ import csv
 from os import path, listdir
 import pandas as pd
 from collections import defaultdict, deque
-from helpers.schema import Schema
+from mmmalloc.helpers.schema import Schema
 import numpy as np
 import threading
 import itertools
