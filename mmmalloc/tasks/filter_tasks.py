@@ -21,8 +21,8 @@ def filter_tasks(dataset_dir, saving_file):
     saving_thread.start()
 
     for event in task_events(dataset_dir, progress=True):
-        missing_info = np.isnan(event[index['missing info']])
-        if not missing_info:
+        missing_info_empty = np.isnan(event[index['missing info']])
+        if not missing_info_empty:
             ignored_events += 1
             continue
 
