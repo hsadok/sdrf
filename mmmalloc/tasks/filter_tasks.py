@@ -59,7 +59,9 @@ def filter_tasks(dataset_dir, saving_file):
                 task_info = running_tasks[task_id]
                 task_info.update({'task_id': task_id,
                                   'finish_time': event[index['time']]})
-                complete_tasks.append(task_info)
+                # Some tasks have 0 cpu or 0 memory, we are ignoring those
+                if (task_info['cpu'] > 0) and (task_info['memory'] > 0):
+                    complete_tasks.append(task_info)
                 del task_states[task_id]
                 del running_tasks[task_id]
 
