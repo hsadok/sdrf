@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-from mmmalloc.allocators.arrival import Arrival
+from mmmalloc.allocators.arrival import Arrival, Task
 from mmmalloc.helpers.priority_queue import PriorityQueue
 
 
@@ -10,15 +10,20 @@ from mmmalloc.helpers.priority_queue import PriorityQueue
 # of resource utilization for their dominant resource
 # there must be a separate credibility for each resource and user
 class MMMDRF(Arrival):
-    def __init__(self, capacities, users_resources, initial_credibilities=None,
-                 delta=1.0, keep_history=False):
+    def __init__(self, capacities, users_resources_dict,
+                 initial_credibilities=None, delta=1.0, keep_history=False):
         """
         :param capacities: array with capacities for each resource
-        :param users_resources: array with users resources [users]x[resources]
-        :param demands: array with demands for each user [users]x[resources]
+        :param users_resources_dict: dict with users resources user:[resources]
         """
-        super(MMMDRF, self).__init__(capacities, len(users_resources),
-                                     keep_history)
+        num_users = len(users_resources_dict)
+
+        super(MMMDRF, self).__init__(capacities, num_users, keep_history)
+
+        users_resources = [0]*num_users
+        for user, resource in users_resources_dict.iteritems():
+            users_resources[Task._user_index[user]] = resource  # HACK!
+
         self.user_resources = np.array(users_resources)
         self.delta = delta
 
@@ -36,7 +41,8 @@ class MMMDRF(Arrival):
         # same as wDRF when user_resources/capacities are used as the weight
         res_left = np.max(self.allocations[user]/self.user_resources[user])
 
-        # don't bother adding when users are using more than they have
+        # don't bother adding when users are using more than they have (their
+        # share is >= 1)
         if res_left < 1:
             self.user_resources_queue.add(user, res_left)
 
@@ -66,27 +72,39 @@ class MMMDRF(Arrival):
         return picked_task
 
     def finish_task(self, task):
-        raise NotImplementedError()  # TODO here is the time to reinsert users
-        if self.consumed_resources < task_demands or \
-           self.allocations[user] < task_demands:
-            return
-        self.consumed_resources -= task_demands
-        self.allocations[user] -= task_demands
-        contributions = self.user_resources[user] - task_demands
-        # TODO WRONG!
-        damping = self.delta ** self._duration[user]
-        self.credibilities[user] = damping * self.credibilities[user] + \
-                                       (1-damping) * contributions
-        # update credibility and reinsert user
-        self.update(user)
+        self._insert_user(task.user)
+        # TODO update credibilities
 
-    # the way I implemented the wDRF, when a task finishes we reinsert all hold
-    # user which is O(n*log(n)) (or just O(n) on some priority queues) I should
-    # check if the MESOS implementation also does it. If they do, well... life
-    # is easy just update every user credibility, if they don't we may use
-    # approximation techniques. One case or the other comparing the outcomes of
-    # both strategies sounds nice.
+        # raise NotImplementedError()  # TODO here is the time to reinsert users
+        # if self.consumed_resources < task_demands or \
+        #    self.allocations[user] < task_demands:
+        #     return
+        # self.consumed_resources -= task_demands
+        # self.allocations[user] -= task_demands
+        # contributions = self.user_resources[user] - task_demands
+        # # TODO WRONG!
+        # damping = self.delta ** self._duration[user]
+        # self.credibilities[user] = damping * self.credibilities[user] + \
+        #                                (1-damping) * contributions
+        # # update credibility and reinsert user
+        # self.update(user)
 
+
+# How to calculate the credibility, 3 choices:
+# * I may keep using the old credibility where we have to choose what user will
+#   provide each resource. This requires a queue of "donors"
+# * I may give resources equally to each donor
+# * I may forget about it and use the exponential moving average of the total
+#   allocation (users would benefit even when nobody uses their stuff as long
+#   as they are "contributing")
+
+# When the credibility changes:
+# * Every instant (being amortized)
+# * Task is allocated
+# * Task finishes
+
+
+# == OLD IDEAS keeping for reference as some stuff are still useful ==
 # Regime 1 - "private usage"
 # * keep track of the minimum difference between user usage and the resources
 #   they possess in proportion to the total amount of the resource.
@@ -97,7 +115,7 @@ class MMMDRF(Arrival):
 #   possess they enter the next regime.
 
 # Regime 2 - "3M"
-# Wait till all users with pending tasks are in the 2nd regime
+# Wait till all users with pending tasks are in the 2nd regime ()
 # Give priority to whoever has the greatest smallest credibility share!
 # smallest credibility share for user i:
 #     min(credibility_vector_i/capacity_vector_i)
@@ -110,7 +128,7 @@ class MMMDRF(Arrival):
 
 # ===== Credibility =====
 # -- Updating --
-# We update the credibility everytime a task finishes.
+# We update the credibility every time a task finishes.
 # What and how to update? Some ideas:
 # * Every time a task finishes, the user whose task finished should have their
 #   credibility discounted -- maybe this is not the best time...

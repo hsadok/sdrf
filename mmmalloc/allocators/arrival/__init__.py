@@ -12,7 +12,7 @@ class Task(object):
         self.task_id = task_id
         self.user = Task._user_index[user_id]
         self.duration = duration
-        self.demands = demands
+        self.demands = np.array(demands)
         self.cpu = demands[0]
         self.memory = demands[1]
         self.submit_time = submit_time
@@ -91,6 +91,9 @@ class Arrival(object):
         if simulation_limit is None:
             simulation_limit = np.inf
         for task in tasks:
+            if task.submit_time < self.current_time:
+                raise RuntimeError('Task arrived in the future! Must provide '
+                                   'tasks in chronological order.')
             if task.submit_time > simulation_limit:
                 self._finish_tasks_until(simulation_limit)
                 return
@@ -114,24 +117,42 @@ class Arrival(object):
             self.finish_task(next_task)
 
     def _pick_from_queue(self, queue, constraints=None):
-        while True:
-            user = queue.pop()
+        """
+        If a user in the queue doesn't satisfy the constraints function we
+        remove the user from the queue, if the constraints somehow change (i.e.
+        user tasks finished) the user must be reinserted externally.
+        """
+        picked_task = None
+        available_resource = self._capacities - self.consumed_resources
+
+        # for some reason using np.all here was much slower...
+        # this ugly solution using 2 returns performed way better
+        def system_fulfills_request(demands):
+            if demands[0] > available_resource[0]:
+                return False
+            return demands[1] <= available_resource[1]
+            # return np.all(task.demands <= self._capacities)
+
+        for user in queue.sorted_elements():
             if user is None:
                 break
 
             if not self.users_queues[user]:
+                queue.remove(user)
                 continue
 
             task = self.users_queues[user][0]
-
-            system_fulfills_request = np.all(
-                self.consumed_resources + task.demands <= self._capacities)
 
             if constraints is None:
                 pass_constraints = True
             else:
                 pass_constraints = constraints(task)
 
-            if system_fulfills_request and pass_constraints:
-                return self.users_queues[user].pop()
-        return None
+            if pass_constraints and system_fulfills_request(task.demands):
+                picked_task = self.users_queues[user].pop()
+                break
+
+            if not pass_constraints:
+                queue.remove(user)
+
+        return picked_task
