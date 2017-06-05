@@ -1,6 +1,7 @@
 import click
 import json
 import sys
+from itertools import product
 import ConfigParser as configparser
 
 
@@ -15,7 +16,7 @@ def cli():
 @click.argument('saving_dir', type=click.Path(exists=True, file_okay=False,
                                               writable=True))
 def aggregate_user_events(*args, **kwargs):
-    from user_types.aggregate_user_events import aggregate_user_events
+    from mmmalloc.user_types.aggregate_user_events import aggregate_user_events
     aggregate_user_events(*args, **kwargs)
 
 
@@ -25,7 +26,7 @@ def aggregate_user_events(*args, **kwargs):
 @click.argument('saving_file', type=click.Path(file_okay=True, writable=True,
                                                dir_okay=False))
 def filter_tasks(*args, **kwargs):
-    from tasks.filter_tasks import filter_tasks
+    from mmmalloc.tasks.filter_tasks import filter_tasks
     filter_tasks(*args, **kwargs)
 
 
@@ -34,9 +35,10 @@ def filter_tasks(*args, **kwargs):
                                               dir_okay=False, readable=True))
 @click.argument('saving_file', type=click.Path(file_okay=True, writable=True,
                                                dir_okay=False))
-def system_utilization(*args, **kwargs):
-    from tasks.system_utilization import utilization_over_time
-    utilization_over_time(*args, **kwargs)
+def system_utilization(tasks_file, saving_file):
+    from mmmalloc.tasks.system_utilization import SystemUtilization
+    system_utilization = SystemUtilization(tasks_file)
+    system_utilization.plot(saving_file)
 
 
 @cli.command(help='Aggregate requests in the same timestamp.')
@@ -45,7 +47,7 @@ def system_utilization(*args, **kwargs):
 @click.argument('saving_dir', type=click.Path(exists=True, file_okay=False,
                                               writable=True))
 def generate_user_needs(*args, **kwargs):
-    from user_types.generate_user_needs import generate_all_user_needs
+    from mmmalloc.user_types.generate_user_needs import generate_all_user_needs
     generate_all_user_needs(*args, **kwargs)
 
 
@@ -58,7 +60,7 @@ def generate_user_needs(*args, **kwargs):
 @click.argument('resource_type', type=click.Choice(['cpu', 'memory']))
 @click.option('--num_users', default=0)
 def sample_needs(*args, **kwargs):
-    from user_types.sample_needs import sample_needs
+    from mmmalloc.user_types.sample_needs import sample_needs
     sample_needs(*args, **kwargs)
 
 
@@ -70,7 +72,7 @@ def sample_needs(*args, **kwargs):
 @click.argument('delta', type=click.FLOAT)
 @click.argument('resource_percentage', type=click.FLOAT)
 def simulate_allocation(*args, **kwargs):
-    from simulators.simulate_allocation import simulate_allocation
+    from mmmalloc.simulators.simulate_allocation import simulate_allocation
     simulate_allocation(*args, **kwargs)
 
 
@@ -95,8 +97,10 @@ def simulate_allocation(*args, **kwargs):
                    'age of 2 resources per hour and this option is 1.1, we giv'
                    'e this user 2.2 resources as their own. When more than one'
                    ' value is provided, a simulation is run for each.')
+@click.option('--jug', is_flag=True,
+              help='Use this option to run multiple processes using jug.')
 def simulate_task_allocation(tasks_file, saving_path, allocator, config, delta,
-                             resource):
+                             resource, jug):
     if (not config) and (not resource):
         print('Must provide a config file or at least one resource percentage')
         sys.exit(1)
@@ -118,11 +122,20 @@ def simulate_task_allocation(tasks_file, saving_path, allocator, config, delta,
     saving_path = saving_path or '.'
 
     if allocator == 'wdrf':
-        from simulators.simulate_task_allocation import wdrf
-        wdrf(tasks_file, saving_path, resource)
-    elif allocator == '3mdrf':
-        from simulators.simulate_task_allocation import mmm_drf
-        mmm_drf(tasks_file, saving_path, resource, delta)
+        from mmmalloc.simulators.simulate_task_allocation import wdrf as simulate
+        arg_iterator = product([tasks_file], [saving_path], resource)
+    else:  # 3m-drf
+        from mmmalloc.simulators.simulate_task_allocation import mmm_drf as simulate
+        arg_iterator = product([tasks_file], [saving_path], resource, delta)
+
+    if jug:
+        from jug import TaskGenerator
+        simulate = TaskGenerator(simulate)
+
+    for arg in arg_iterator:
+        simulate(*arg)
+
+    # map(lambda x: simulate(*x), arg_iterator)
 
 
 @cli.command(help='Simulate allocation using multiple cores.')
@@ -133,7 +146,7 @@ def simulate_task_allocation(tasks_file, saving_path, allocator, config, delta,
 @click.argument('config_file', type=click.Path(exists=True, file_okay=True,
                                                dir_okay=False, readable=True))
 def multicore_simulate_allocation(dataset_file, saving_dir, config_file):
-    from simulators.multicore_simulate_allocation import \
+    from mmmalloc.simulators.multicore_simulate_allocation import \
         multicore_simulate_allocation
     config = configparser.ConfigParser()
     config.read(config_file)
@@ -150,7 +163,7 @@ def multicore_simulate_allocation(dataset_file, saving_dir, config_file):
 @click.argument('data_path',
                 type=click.Path(exists=True, file_okay=False, readable=True))
 def experiments(data_path):
-    import analysis.experiments2 as exp
+    import mmmalloc.analysis.experiments2 as exp
     exp.request_fulfilment(data_path)
     exp.resource_vs_utility(data_path)
     exp.allocation_smoothness(data_path)
