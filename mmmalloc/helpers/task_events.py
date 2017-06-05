@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from os import listdir, path
 import pandas as pd
-from progress.bar import Bar
+from tqdm import tqdm
 
 from mmmalloc.helpers.schema import Schema
 
@@ -11,7 +11,7 @@ def task_events(dataset_dir, progress=False):
     task_events_schema = schema.task_events
     files = sorted(listdir(path.join(dataset_dir, 'task_events')))
     if progress:
-        files = Bar('Processing %(eta_td)s', max=len(files)).iter(files)
+        files = tqdm(files, total=len(files))
     for i, f in enumerate(files):
         task_events_df = pd.read_csv(path.join(dataset_dir, 'task_events', f),
                                      header=None, index_col=False,
