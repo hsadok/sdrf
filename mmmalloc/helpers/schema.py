@@ -19,7 +19,6 @@ class Schema:
 class SchemaIndex(dict):
     def __init__(self, schema, **kwargs):
         super(SchemaIndex, self).__init__(**kwargs)
-        # self.schema =
         self.schema = schema
         self['index'] = 0
 
