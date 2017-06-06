@@ -48,7 +48,7 @@ class SystemUtilization(object):
         self.tasks_file_sha = sha256(open(tasks_file, 'rb').read()).hexdigest()
 
         if cache_file is None:
-            cache_file = join(dirname(abspath(tasks_file)), '.cred_cache.json')
+            cache_file = join(dirname(abspath(tasks_file)), 'cred_cache.json')
 
         self.cache_file = cache_file
 
