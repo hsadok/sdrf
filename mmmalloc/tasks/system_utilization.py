@@ -63,6 +63,10 @@ class SystemUtilization(object):
         self._data_df = None
         self.load_from_cache()
 
+    @property
+    def num_users(self):
+        return len(self.users_cpu_peak)
+
     def __getattr__(self, name):
         if name in self._save_properties:
             if getattr(self, '_' + name) is None:
