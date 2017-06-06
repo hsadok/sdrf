@@ -28,6 +28,8 @@ class Task(object):
         return hash(self.count)
 
     def __eq__(self, other):
+        if other is None:
+            return False
         return self.count == other.count
 
     def __getitem__(self, key):
