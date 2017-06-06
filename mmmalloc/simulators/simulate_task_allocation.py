@@ -1,56 +1,12 @@
 # -*- coding: utf-8 -*-
 import threading
-from Queue import Queue
-import pandas as pd
-from tqdm import tqdm
 from os import path
 
-from mmmalloc.allocators.arrival import Task
 from mmmalloc.allocators.arrival.wdrf import WDRF
 from mmmalloc.allocators.arrival.mmm_drf import MMMDRF
-from mmmalloc.helpers import get_line_number
 from mmmalloc.helpers.file_name import FileName
-from mmmalloc.helpers.schema import SchemaIndex
-from mmmalloc.tasks import tasks_file_header, save_task_deque
+from mmmalloc.tasks import save_task_deque, tasks_generator
 from mmmalloc.tasks.system_utilization import SystemUtilization
-
-
-def file_loader(file_name, out_queue):
-    chunk_size = out_queue.maxsize
-    if out_queue.maxsize == 0:
-        chunk_size = None  # read the entire thing at once
-    csv_reader = pd.read_csv(file_name, header=None, index_col=False,
-                             chunksize=chunk_size, names=tasks_file_header)
-    task_index = SchemaIndex(tasks_file_header)
-    for df in csv_reader:
-        for task_line in df.itertuples():
-            submit_time = task_line[task_index['submit_time']]
-            user_index = task_line[task_index['user_id']]
-            duration = task_line[task_index['finish_time']] - \
-                       task_line[task_index['start_time']]
-            demands = (task_line[task_index['cpu']],
-                       task_line[task_index['memory']])
-            task_id = task_line[task_index['task_id']]
-            task = Task(user_index, task_id, duration, demands, submit_time)
-            out_queue.put(task)
-    out_queue.put(None)
-
-
-def tasks_generator(sorted_tasks_file):
-    line_queue = Queue(10000)
-
-    loading_thread = threading.Thread(target=file_loader,
-                                      args=(sorted_tasks_file, line_queue))
-    loading_thread.start()
-
-    last_submit_time = 0
-    num_tasks = get_line_number(sorted_tasks_file)
-    for task in tqdm(iter(line_queue.get, None), total=num_tasks):
-        if task.submit_time < last_submit_time:
-            raise RuntimeError('Not sorted! %f < %f' % (task.submit_time,
-                                                        last_submit_time))
-        last_submit_time = task.submit_time
-        yield task
 
 
 # def wdrf(system_resources, resource_percentage, saving_dir, tasks_file,
