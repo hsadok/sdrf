@@ -13,15 +13,17 @@ from mmmalloc.helpers.schema import SchemaIndex
 
 tasks_file_header = ['submit_time', 'start_time', 'finish_time', 'user_id',
                      'task_id', 'cpu', 'memory']
+jobs_file_header = ['job_id', 'user_id', 'start_time', 'finish_time',
+                    'duration', 'num_tasks', 'cpu_mean', 'memory_mean']
 
 
-def save_task_deque(task_deque, saving_file, done=None):
+def save_from_deque(task_deque, saving_file, header, done=None):
     def save_max():
         f = open(saving_file, 'a')
         wr = csv.writer(f)
         while len(task_deque) > 0:
             task = task_deque.pop()
-            wr.writerow([task[i] for i in tasks_file_header])
+            wr.writerow([task[i] for i in header])
 
     if done is not None:
         while not done.is_set():
@@ -41,12 +43,13 @@ def file_loader(file_name, out_queue):
         for task_line in df.itertuples():
             submit_time = task_line[task_index['submit_time']]
             user_index = task_line[task_index['user_id']]
-            duration = task_line[task_index['finish_time']] - \
-                       task_line[task_index['start_time']]
+            start_time = task_line[task_index['start_time']]
+            finish_time = task_line[task_index['finish_time']]
             demands = (task_line[task_index['cpu']],
                        task_line[task_index['memory']])
             task_id = task_line[task_index['task_id']]
-            task = Task(user_index, task_id, duration, demands, submit_time)
+            task = Task(user_index, task_id, start_time, finish_time, demands,
+                        submit_time)
             out_queue.put(task)
     out_queue.put(None)
 

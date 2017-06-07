@@ -3,7 +3,7 @@ import threading
 from collections import deque
 import numpy as np
 
-from mmmalloc.tasks import save_task_deque
+from mmmalloc.tasks import save_from_deque, tasks_file_header
 from mmmalloc.helpers.schema import Schema, SchemaIndex
 from mmmalloc.helpers.task_events import task_events
 
@@ -16,8 +16,8 @@ def filter_tasks(dataset_dir, saving_file):
     done = threading.Event()
     index = SchemaIndex(Schema(dataset_dir).task_events)
 
-    saving_thread = threading.Thread(target=save_task_deque, args=(
-        complete_tasks, saving_file, done))
+    saving_thread = threading.Thread(target=save_from_deque, args=(
+        complete_tasks, saving_file, tasks_file_header, done))
     saving_thread.start()
 
     for event in task_events(dataset_dir, progress=True):

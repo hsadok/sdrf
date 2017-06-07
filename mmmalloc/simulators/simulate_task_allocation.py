@@ -5,7 +5,7 @@ from os import path
 from mmmalloc.allocators.arrival.wdrf import WDRF
 from mmmalloc.allocators.arrival.mmm_drf import MMMDRF
 from mmmalloc.helpers.file_name import FileName
-from mmmalloc.tasks import save_task_deque, tasks_generator
+from mmmalloc.tasks import tasks_generator, save_from_deque, tasks_file_header
 from mmmalloc.tasks.system_utilization import SystemUtilization
 
 
@@ -53,8 +53,8 @@ def mmm_drf(tasks_file, saving_dir, resource_percentage, delta):
 
 def simulate_task_allocation(allocator, tasks_file, saving_file):
     done = threading.Event()
-    saving_thread = threading.Thread(target=save_task_deque, args=(
-        allocator.finished_tasks, saving_file, done))
+    saving_thread = threading.Thread(target=save_from_deque, args=(
+        allocator.finished_tasks, saving_file, tasks_file_header, done))
     saving_thread.start()
     allocator.simulate(tasks_generator(tasks_file))
     done.set()

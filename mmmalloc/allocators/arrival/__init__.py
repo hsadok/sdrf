@@ -7,17 +7,17 @@ from mmmalloc.helpers.priority_queue import PriorityQueue
 
 
 class Task(object):
-    def __init__(self, user_id, task_id, duration, demands, submit_time):
+    def __init__(self, user_id, task_id, start_time, finish_time, demands,
+                 submit_time):
         self.user_id = user_id
         self.task_id = task_id
         self.user = Task._user_index[user_id]
-        self.duration = duration
         self.demands = np.array(demands)
         self.cpu = demands[0]
         self.memory = demands[1]
         self.submit_time = submit_time
-        self.start_time = None
-        self.finish_time = None
+        self.start_time = start_time
+        self.finish_time = finish_time
         self.count = Task._counter.next()
 
     _counter = itertools.count()
@@ -34,6 +34,10 @@ class Task(object):
 
     def __getitem__(self, key):
         return self.__dict__[key]  # gets KeyError exception when invalid
+
+    @property
+    def duration(self):
+        return self.finish_time - self.start_time
 
 
 # Simulates a task arrival process
