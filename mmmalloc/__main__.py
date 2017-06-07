@@ -1,6 +1,7 @@
 import click
 import json
 import sys
+import os
 from itertools import product
 import ConfigParser as configparser
 
@@ -136,6 +137,24 @@ def simulate_task_allocation(tasks_file, saving_path, allocator, config, delta,
         simulate(*arg)
 
     # map(lambda x: simulate(*x), arg_iterator)
+
+
+@cli.command(help='Get the summary of tasks execution from a tasks file.')
+@click.argument('tasks_file', type=click.Path(exists=True, file_okay=True,
+                                              dir_okay=False, readable=True))
+@click.argument('saving_path', type=click.Path(file_okay=False, dir_okay=True,
+                                               writable=True), required=False)
+def jobs_summary(tasks_file, saving_path):
+    from mmmalloc.tasks.jobs_summary import jobs_summary as run_jobs_summary
+    saving_path = saving_path or '.'
+    if '.' in tasks_file:
+        dot_split = tasks_file.split('.')
+        saving_file = '.'.join(dot_split[0:-1]) + '-jobs.' + dot_split[-1]
+    else:
+        saving_file = tasks_file + '-jobs'
+
+    saving_file = os.path.join(saving_path, saving_file)
+    run_jobs_summary(tasks_file, saving_file)
 
 
 @cli.command(help='Simulate allocation using multiple cores.')
