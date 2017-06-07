@@ -3,7 +3,7 @@ import csv
 import threading
 from Queue import Queue
 from time import sleep
-
+import os
 import pandas as pd
 from tqdm import tqdm
 
@@ -13,8 +13,9 @@ from mmmalloc.helpers.schema import SchemaIndex
 
 tasks_file_header = ['submit_time', 'start_time', 'finish_time', 'user_id',
                      'task_id', 'cpu', 'memory']
-jobs_file_header = ['job_id', 'user_id', 'start_time', 'finish_time',
-                    'duration', 'num_tasks', 'cpu_mean', 'memory_mean']
+jobs_file_header = ['job_id', 'user_id', 'submit_time', 'start_time',
+                    'finish_time', 'duration', 'num_tasks', 'cpu_mean',
+                    'memory_mean']
 
 
 def save_from_deque(task_deque, saving_file, header, done=None):

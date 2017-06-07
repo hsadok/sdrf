@@ -9,6 +9,7 @@ from mmmalloc.tasks import tasks_generator, jobs_file_header, save_from_deque
 class RunningJob(object):
     def __init__(self):
         self.num_tasks = 0
+        self.submit_time = sys.maxint
         self.start_time = sys.maxint
         self.finish_time = 0
         self.cpu_sum = 0.0
@@ -33,6 +34,7 @@ class RunningJob(object):
         self.num_tasks += 1
         self.cpu_sum += task.cpu
         self.memory_sum += task.memory
+        self.submit_time = min(self.submit_time, task.submit_time)
         self.start_time = min(self.start_time, task.start_time)
         self.finish_time = max(self.finish_time, task.finish_time)
 
