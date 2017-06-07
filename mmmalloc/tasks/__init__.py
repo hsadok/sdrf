@@ -19,6 +19,11 @@ jobs_file_header = ['job_id', 'user_id', 'submit_time', 'start_time',
 
 
 def save_from_deque(task_deque, saving_file, header, done=None):
+    try:
+        os.remove(saving_file)
+    except OSError:
+        pass
+
     def save_max():
         f = open(saving_file, 'a')
         wr = csv.writer(f)
