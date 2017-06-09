@@ -59,7 +59,8 @@ class MMMDRF(Arrival):
     def pick_task(self):
         def user_fulfills_request(task):
             user_alloc = self.allocations[task.user]
-            return np.all(user_alloc + task.demands <= self.user_resources)
+            return np.all(user_alloc +
+                          task.demands <= self.user_resources[task.user])
 
         def pick_from_resources():
             return self._pick_from_queue(self.user_resources_queue,
