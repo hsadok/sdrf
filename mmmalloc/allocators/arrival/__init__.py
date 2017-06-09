@@ -155,7 +155,7 @@ class Arrival(object):
                 pass_constraints = constraints(task)
 
             if pass_constraints and system_fulfills_request(task.demands):
-                picked_task = self.users_queues[user].pop()
+                picked_task = self.users_queues[user].popleft()
                 break
 
             if not pass_constraints:

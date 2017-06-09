@@ -28,7 +28,7 @@ def save_from_deque(task_deque, saving_file, header, done=None):
         f = open(saving_file, 'a')
         wr = csv.writer(f)
         while len(task_deque) > 0:
-            task = task_deque.pop()
+            task = task_deque.popleft()
             wr.writerow([task[i] for i in header])
 
     if done is not None:
