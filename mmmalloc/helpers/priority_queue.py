@@ -38,8 +38,6 @@ class PriorityQueue(object):
         return None
 
     def get_min(self, get_priority=False):
-        self.cleanup_pending_removal()
-
         while self.heap:
             priority, name = self.heap[0]
             if name == self.removed_name:
@@ -66,7 +64,6 @@ class PriorityQueue(object):
         return elements_iterator()
 
     def remove(self, name):
-        self.cleanup_pending_removal()
         entry = self.finder.pop(name)
         entry[1] = self.removed_name
 
