@@ -100,8 +100,13 @@ def simulate_allocation(*args, **kwargs):
                    ' value is provided, a simulation is run for each.')
 @click.option('--jug', is_flag=True,
               help='Use this option to run multiple processes using jug.')
+@click.option('--same_share', is_flag=True,
+              help='This makes the resource option be used only for the amount'
+                   ' of resources in the system instead of for each user. In t'
+                   'his mode all users get the same share. This only makes sen'
+                   'se for 3MDRF and is useful to compare it against WDRF')
 def simulate_task_allocation(tasks_file, saving_path, allocator, config, delta,
-                             resource, jug):
+                             resource, jug, same_share):
     if (not config) and (not resource):
         print('Must provide a config file or at least one resource percentage')
         sys.exit(1)
@@ -127,7 +132,8 @@ def simulate_task_allocation(tasks_file, saving_path, allocator, config, delta,
         arg_iterator = product([tasks_file], [saving_path], resource)
     else:  # 3m-drf
         from mmmalloc.simulators.simulate_task_allocation import mmm_drf as simulate
-        arg_iterator = product([tasks_file], [saving_path], resource, delta)
+        arg_iterator = product([tasks_file], [saving_path], resource, delta,
+                               [same_share])
 
     if jug:
         from jug import TaskGenerator
