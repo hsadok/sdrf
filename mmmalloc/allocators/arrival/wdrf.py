@@ -15,7 +15,7 @@ from mmmalloc.helpers.priority_queue import PriorityQueue
 class WDRF(Arrival):
     def __init__(self, capacities, weights, keep_history=False):
         """
-        :param capacities: array with capacities for each resource
+        :param capacities: array with system capacities for each resource
         :param weights: each user's resources weight
         """
         super(WDRF, self).__init__(capacities, len(weights), keep_history)
