@@ -6,9 +6,6 @@
 #ifndef DYNAMIC_PRIORITY_QUEUE_H
 #define DYNAMIC_PRIORITY_QUEUE_H
 
-// DEBUG
-#include <iostream>
-
 #include <algorithm>
 #include <functional>
 #include <string>
@@ -63,8 +60,6 @@ class DynamicPriorityQueue {
       update_event(std::prev(element_it));
     }
     update_event(element_it);
-    std::cout << "last_time: " << last_time << std::endl;
-    std::cout << " -- add finish --" << std::endl;
   }
 
   Element<T> pop(double current_time) {
@@ -81,10 +76,7 @@ class DynamicPriorityQueue {
     if (empty()) {
       throw std::out_of_range("DynamicPriorityQueue is empty");
     }
-    std::cout << "last_time: " << last_time << std::endl;
-    std::cout << "===== 2" << std::endl;
     update(current_time);
-    std::cout << "===== 10" << std::endl;
     return elements_priority.begin()->first;
   }
 
@@ -124,29 +116,16 @@ class DynamicPriorityQueue {
   }
 
   void update(double current_time) {
-    std::cout << "===== 3" << std::endl;
     check_time(current_time);
-    std::cout << "===== 7" << std::endl;
     auto event_it = events.begin();
-    std::cout << "===== 8" << std::endl;
-    std::cout << "Events size: " << events.size() << std::endl;
-    std::cout << "Events empty: " << events.empty() << std::endl;
     while( !events.empty() && (event_it->first <= current_time) ) {
-      std::cout << "===== (loop) 9 : " << event_it->first << std::endl;
       trigger_event(event_it->second, current_time);
       event_it = events.begin();
     }
   }
 
-  // TODO remove!
-  bool lala() {
-    std::cout << "lala" << std::endl;
-    return false;
-  }
-
-  double last_time; // TODO change to private
  private:
-  
+  double last_time;
   events_set events; 
   elements_map elements_priority; // sort elements and also link to events
   elements_name_map elements_name_mapper;
@@ -173,15 +152,8 @@ class DynamicPriorityQueue {
     //
     // Now update events for D, C, E and A
 
-    std::cout << "----------------" << std::endl;
-    std::cout << "name: " << name << std::endl;
-    std::cout << "current_time: " << current_time << std::endl;
-
     auto element_it = elements_name_mapper.at(name);
     auto neighbor_it = std::next(element_it);
-
-    std::cout << "time: " << element_it->second->first << std::endl;
-    std::cout << "name: " << element_it->second->second << std::endl;
 
     if (neighbor_it == elements_priority.end()) {
       throw std::logic_error("Event in the last element should be impossible");
@@ -224,7 +196,6 @@ class DynamicPriorityQueue {
     if (std::next(iter) != elements_priority.end()) {
       double switch_time = iter->first.get_switch_time(std::next(iter)->first);
       if (switch_time >= 0) {
-        std::cout << "add envent: switch_time: " << switch_time << "  name: " << iter->first.name << std::endl;
         auto event_iter = events.emplace(switch_time, iter->first.name).first;
         iter->second = event_iter;
         return;
@@ -234,16 +205,10 @@ class DynamicPriorityQueue {
   }
 
   void check_time(double current_time) {
-    std::cout << "last_time: " << last_time << std::endl;
-    std::cout << "===== 4" << std::endl;
     if (last_time > current_time) {
-      std::cout << "===== (error)" << last_time << ", " << current_time << std::endl;
       throw std::runtime_error("DynamicPriorityQueue can't go back in time...");
     }
-    std::cout << "===== 5 " << last_time << ", " << current_time << std::endl;
-    std::cout << "last_time: " << last_time << std::endl;
     last_time = current_time;
-    std::cout << "===== 6" << std::endl;
   }
 
   void remove(typename elements_name_map::iterator name_map_iter) {
