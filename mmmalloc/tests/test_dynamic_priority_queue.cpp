@@ -7,7 +7,7 @@
 #include <cassert>
 #include <cmath>
 
-#include "dynamic_priority_queue.h"
+#include "../helpers/c_dynamic_priority_queue/dynamic_priority_queue.h"
 
 
 int main()

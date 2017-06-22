@@ -1,4 +1,2 @@
 *.o
-test_dynamic_priority_queue
-test_priority_queue
 lib_c_priority_queue.so

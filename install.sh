@@ -10,3 +10,11 @@ source /usr/local/bin/virtualenvwrapper.sh
 mkvirtualenv mmmdrf
 workon mmmdrf
 pip install -r requirements.txt
+
+cd mmmalloc/helpers/c_dynamic_priority_queue
+/usr/bin/env bash compile.sh
+
+cd -
+cd mmmalloc/tests
+/usr/bin/env bash compile.sh
+cd -
