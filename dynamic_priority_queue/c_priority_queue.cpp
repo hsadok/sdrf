@@ -6,20 +6,22 @@
 #include "priority_queue.h"
 #include "dynamic_priority_queue.h"
 
-typedef int name_t;
-
 extern "C" {
+  typedef int name_t;
+
   PriorityQueue<name_t>* PriorityQueue_new() {
     return new PriorityQueue<name_t>();
   }
   void PriorityQueue_add(PriorityQueue<name_t>* queue, Element<name_t>* element) {
     queue->add(*element);
   }
-  Element<name_t> PriorityQueue_pop(PriorityQueue<name_t>* queue, double current_time) {
-    return queue->pop(current_time);
+  Element<name_t>* PriorityQueue_pop(PriorityQueue<name_t>* queue, double current_time) {
+    Element<name_t>* element = new Element<name_t>(queue->pop(current_time));
+    return element;
   }
-  Element<name_t> PriorityQueue_get_min(PriorityQueue<name_t>* queue, double current_time) {
-    return queue->get_min(current_time);
+  Element<name_t>* PriorityQueue_get_min(PriorityQueue<name_t>* queue, double current_time) {
+    Element<name_t>* element = new Element<name_t>(queue->get_min(current_time));
+    return element;
   }
   void PriorityQueue_remove(PriorityQueue<name_t>* queue, name_t name) {
     return queue->remove(name);
@@ -44,13 +46,13 @@ extern "C" {
   void DynamicPriorityQueue_add(DynamicPriorityQueue<name_t>* queue, Element<name_t>* element) {
     queue->add(*element);
   }
-  Element<name_t> DynamicPriorityQueue_pop(DynamicPriorityQueue<name_t>* queue, double current_time) {
-    return queue->pop(current_time);
+  Element<name_t>* DynamicPriorityQueue_pop(DynamicPriorityQueue<name_t>* queue, double current_time) {
+    Element<name_t>* element = new Element<name_t>(queue->pop(current_time));
+    return element;
   }
-  Element<name_t> DynamicPriorityQueue_get_min(DynamicPriorityQueue<name_t>* queue, double current_time) {
-    std::cout << "===== 1" << std::endl;
-    std::cout << "[..] last_time: " << queue->last_time << std::endl;
-    return queue->get_min(current_time);
+  Element<name_t>* DynamicPriorityQueue_get_min(DynamicPriorityQueue<name_t>* queue, double current_time) {
+    Element<name_t>* element = new Element<name_t>(queue->get_min(current_time));
+    return element;
   }
   void DynamicPriorityQueue_remove(DynamicPriorityQueue<name_t>* queue, name_t name) {
     return queue->remove(name);

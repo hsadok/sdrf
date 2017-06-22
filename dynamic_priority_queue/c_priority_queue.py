@@ -1,6 +1,16 @@
 import ctypes as ct
 lib = ct.cdll.LoadLibrary('./lib_c_priority_queue.so')
 
+lib.PriorityQueue_new.restype = ct.c_void_p
+lib.PriorityQueue_pop.restype = ct.c_void_p
+lib.PriorityQueue_get_min.restype = ct.c_void_p
+lib.DynamicPriorityQueue_new.restype = ct.c_void_p
+lib.DynamicPriorityQueue_pop.restype = ct.c_void_p
+lib.DynamicPriorityQueue_get_min.restype = ct.c_void_p
+lib.Element_new.restype = ct.c_void_p
+lib.Element_get_priority.restype = ct.c_double
+lib.Element_get_update_time.restype = ct.c_double
+
 max_repr_size = 10000
 
 
@@ -86,14 +96,14 @@ class Element(object):
                  memory_relative_allocation=None, obj=None):
         if obj is None:
             self.obj = lib.Element_new(name,
-                                      ct.c_double(update_time),
-                                      ct.c_double(tau),
-                                      ct.c_double(system_cpu),
-                                      ct.c_double(cpu_credibility),
-                                      ct.c_double(cpu_relative_allocation),
-                                      ct.c_double(system_memory),
-                                      ct.c_double(memory_credibility),
-                                      ct.c_double(memory_relative_allocation))
+                                       ct.c_double(update_time),
+                                       ct.c_double(tau),
+                                       ct.c_double(system_cpu),
+                                       ct.c_double(cpu_credibility),
+                                       ct.c_double(cpu_relative_allocation),
+                                       ct.c_double(system_memory),
+                                       ct.c_double(memory_credibility),
+                                       ct.c_double(memory_relative_allocation))
         else:
             self.obj = obj
 
