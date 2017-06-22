@@ -1,5 +1,8 @@
+from os.path import dirname, realpath, join
 import ctypes as ct
-lib = ct.cdll.LoadLibrary('./lib_c_priority_queue.so')
+
+lib_path = join(dirname(realpath(__file__)), 'lib_c_priority_queue.so')
+lib = ct.cdll.LoadLibrary(lib_path)
 
 lib.PriorityQueue_new.restype = ct.c_void_p
 lib.PriorityQueue_pop.restype = ct.c_void_p
