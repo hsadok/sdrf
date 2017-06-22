@@ -8,6 +8,8 @@
 
 extern "C" {
   typedef int name_t;
+  typedef PriorityQueue<name_t>::elements_set::const_iterator PriorityQueue_it;
+  typedef DynamicPriorityQueue<name_t>::elements_map::const_iterator DynamicPriorityQueue_it;
 
   PriorityQueue<name_t>* PriorityQueue_new() {
     return new PriorityQueue<name_t>();
@@ -22,6 +24,23 @@ extern "C" {
   Element<name_t>* PriorityQueue_get_min(PriorityQueue<name_t>* queue, double current_time) {
     Element<name_t>* element = new Element<name_t>(queue->get_min(current_time));
     return element;
+  }
+  PriorityQueue_it* PriorityQueue_cbegin(PriorityQueue<name_t>* queue) {
+    PriorityQueue_it* it = new PriorityQueue_it(queue->cbegin());
+    return it;
+  }
+  void PriorityQueue_it_next(PriorityQueue_it* it) {
+    ++(*it);
+  }
+  Element<name_t>* PriorityQueue_get_element_from_it(PriorityQueue_it* it) {
+    Element<name_t>* element = new Element<name_t>(**it);
+    return element;
+  }
+  int PriorityQueue_it_is_end(PriorityQueue<name_t>* queue, PriorityQueue_it* it) {
+    return *it == queue->cend();
+  }
+  void PriorityQueue_delete_it(PriorityQueue_it* it) {
+    delete it;
   }
   void PriorityQueue_remove(PriorityQueue<name_t>* queue, name_t name) {
     return queue->remove(name);
@@ -53,6 +72,23 @@ extern "C" {
   Element<name_t>* DynamicPriorityQueue_get_min(DynamicPriorityQueue<name_t>* queue, double current_time) {
     Element<name_t>* element = new Element<name_t>(queue->get_min(current_time));
     return element;
+  }
+  DynamicPriorityQueue_it* DynamicPriorityQueue_cbegin(DynamicPriorityQueue<name_t>* queue) {
+    DynamicPriorityQueue_it* it = new DynamicPriorityQueue_it(queue->cbegin());
+    return it;
+  }
+  void DynamicPriorityQueue_it_next(DynamicPriorityQueue_it* it) {
+    ++(*it);
+  }
+  Element<name_t>* DynamicPriorityQueue_get_element_from_it(DynamicPriorityQueue_it* it) {
+    Element<name_t>* element = new Element<name_t>((*it)->first);
+    return element;
+  }
+  int DynamicPriorityQueue_it_is_end(DynamicPriorityQueue<name_t>* queue, DynamicPriorityQueue_it* it) {
+    return *it == queue->cend();
+  }
+  void DynamicPriorityQueue_delete_it(DynamicPriorityQueue_it* it) {
+    delete it;
   }
   void DynamicPriorityQueue_remove(DynamicPriorityQueue<name_t>* queue, name_t name) {
     return queue->remove(name);

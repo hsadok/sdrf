@@ -4,9 +4,13 @@ lib = ct.cdll.LoadLibrary('./lib_c_priority_queue.so')
 lib.PriorityQueue_new.restype = ct.c_void_p
 lib.PriorityQueue_pop.restype = ct.c_void_p
 lib.PriorityQueue_get_min.restype = ct.c_void_p
+lib.PriorityQueue_cbegin.restype = ct.c_void_p
+lib.PriorityQueue_get_element_from_it.restype = ct.c_void_p
 lib.DynamicPriorityQueue_new.restype = ct.c_void_p
 lib.DynamicPriorityQueue_pop.restype = ct.c_void_p
 lib.DynamicPriorityQueue_get_min.restype = ct.c_void_p
+lib.DynamicPriorityQueue_cbegin.restype = ct.c_void_p
+lib.DynamicPriorityQueue_get_element_from_it.restype = ct.c_void_p
 lib.Element_new.restype = ct.c_void_p
 lib.Element_get_priority.restype = ct.c_double
 lib.Element_get_update_time.restype = ct.c_double
@@ -48,7 +52,16 @@ class PriorityQueue(object):
         lib.PriorityQueue_update(self.obj, ct.c_double(current_time))
 
     def sorted_elements(self):
-        pass  # TODO
+        def elements_iterator():
+            it = lib.PriorityQueue_cbegin(self.obj)
+            while not lib.PriorityQueue_it_is_end(self.obj, it):
+                element_obj = lib.PriorityQueue_get_element_from_it(it)
+                yield Element(obj=element_obj)
+                lib.PriorityQueue_it_next(it)
+
+            lib.PriorityQueue_delete_it(it)
+
+        return elements_iterator()
 
 
 class DynamicPriorityQueue(object):
@@ -86,7 +99,16 @@ class DynamicPriorityQueue(object):
         lib.DynamicPriorityQueue_update(self.obj, ct.c_double(current_time))
 
     def sorted_elements(self):
-        pass  # TODO
+        def elements_iterator():
+            it = lib.DynamicPriorityQueue_cbegin(self.obj)
+            while not lib.DynamicPriorityQueue_it_is_end(self.obj, it):
+                element_obj = lib.DynamicPriorityQueue_get_element_from_it(it)
+                yield Element(obj=element_obj)
+                lib.DynamicPriorityQueue_it_next(it)
+
+            lib.DynamicPriorityQueue_delete_it(it)
+
+        return elements_iterator()
 
 
 class Element(object):
