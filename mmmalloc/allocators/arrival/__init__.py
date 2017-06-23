@@ -156,6 +156,8 @@ class Arrival(object):
 
             if pass_constraints and system_fulfills_request(task.demands):
                 picked_task = self.users_queues[user].popleft()
+                # no need to remove the user from the queue here, it will be
+                # removed just after when we update its usage
                 break
 
             if not pass_constraints:
