@@ -42,11 +42,15 @@ extern "C" {
   void PriorityQueue_delete_it(PriorityQueue_it* it) {
     delete it;
   }
-  void PriorityQueue_remove(PriorityQueue<name_t>* queue, name_t name) {
-    return queue->remove(name);
+  Element<name_t>* PriorityQueue_remove(PriorityQueue<name_t>* queue, name_t name) {
+    Element<name_t>* element = new Element<name_t>(queue->remove(name));
+    return element;
   }
   int PriorityQueue_empty(PriorityQueue<name_t>* queue) {
     return queue->empty();
+  }
+  int PriorityQueue_element_is_in(PriorityQueue<name_t>* queue, name_t name) {
+    return queue->element_is_in(name);
   }
   void PriorityQueue_update(PriorityQueue<name_t>* queue, double current_time) {
     return queue->update(current_time);
@@ -90,11 +94,15 @@ extern "C" {
   void DynamicPriorityQueue_delete_it(DynamicPriorityQueue_it* it) {
     delete it;
   }
-  void DynamicPriorityQueue_remove(DynamicPriorityQueue<name_t>* queue, name_t name) {
-    return queue->remove(name);
+  Element<name_t>* DynamicPriorityQueue_remove(DynamicPriorityQueue<name_t>* queue, name_t name) {
+    Element<name_t>* element = new Element<name_t>(queue->remove(name));
+    return element;
   }
   int DynamicPriorityQueue_empty(DynamicPriorityQueue<name_t>* queue) {
     return queue->empty();
+  }
+  int DynamicPriorityQueue_element_is_in(DynamicPriorityQueue<name_t>* queue, name_t name) {
+    return queue->element_is_in(name);
   }
   void DynamicPriorityQueue_update(DynamicPriorityQueue<name_t>* queue, double current_time) {
     return queue->update(current_time);
@@ -114,11 +122,35 @@ extern "C" {
     return new Element<name_t>(name, update_time, tau, system_cpu, cpu_credibility, cpu_relative_allocation,
                                system_memory, memory_credibility, memory_relative_allocation);
   }
+  void Element_update(Element<name_t>* element, double current_time) {
+    element->update(current_time);
+  }
+  name_t Element_get_name(Element<name_t>* element) {
+    return element->get_name();
+  }
+  double Element_get_cpu_credibility(Element<name_t>* element) {
+    return element->get_cpu_credibility();
+  }
+  double Element_get_memory_credibility(Element<name_t>* element) {
+    return element->get_memory_credibility();
+  }
   double Element_get_priority(Element<name_t>* element) {
     return element->get_priority();
   }
   double Element_get_update_time(Element<name_t>* element) {
     return element->get_update_time();
+  }
+  double Element_get_cpu_relative_allocation(Element<name_t>* element) {
+    return element->get_cpu_relative_allocation();
+  }
+  double Element_get_memory_relative_allocation(Element<name_t>* element) {
+    return element->get_memory_relative_allocation();
+  }
+  void Element_set_cpu_relative_allocation(Element<name_t>* element, double cpu_relative_allocation) {
+    element->set_cpu_relative_allocation(cpu_relative_allocation);
+  }
+  void Element_set_memory_relative_allocation(Element<name_t>* element, double memory_relative_allocation) {
+    element->set_memory_relative_allocation(memory_relative_allocation);
   }
   void Element_string(Element<name_t>* element, char* buffer, int max_size) {
     std::strncpy(buffer, std::string(*element).c_str(), max_size);

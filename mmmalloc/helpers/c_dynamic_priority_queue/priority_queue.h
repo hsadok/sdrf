@@ -20,9 +20,8 @@ class PriorityQueue {
   };
 
   void add(const Element<T>& element) {
-    auto existing_element = elements_name_mapper.find(element.name);
-    if (existing_element !=  elements_name_mapper.end()) {
-      remove(element.name);
+    if (element_is_in(element.name)) {
+      throw std::runtime_error("Element already on PriorityQueue");
     }
 
     if (element.get_update_time() > last_time) {
@@ -48,9 +47,7 @@ class PriorityQueue {
       throw std::out_of_range("PriorityQueue is empty");
     }
     update(current_time);
-    Element<T> first_element(*(elements_priority.begin()));
-    remove(first_element.name);
-    return first_element;
+    return remove(elements_priority.begin()->name);
   }
 
   Element<T> get_min(double current_time) {
@@ -69,13 +66,18 @@ class PriorityQueue {
     return elements_priority.cend();
   }
 
-  void remove(const T& name) {
+  Element<T> remove(const T& name) {
     auto name_map_iter = elements_name_mapper.find(name);
-    remove(name_map_iter);
+    return remove(name_map_iter);
   }
 
   bool empty() const {
     return elements_priority.empty();
+  }
+
+  bool element_is_in(const T& name) const {
+    auto existing_element = elements_name_mapper.find(name);
+    return existing_element != elements_name_mapper.end();
   }
 
   operator std::string() const {
@@ -122,13 +124,16 @@ class PriorityQueue {
     last_time = current_time;
   }
 
-  void remove(typename elements_name_map::iterator name_map_iter) {
+  Element<T> remove(typename elements_name_map::iterator name_map_iter) {
     if(name_map_iter == elements_name_mapper.end()) {
-      return;
+      throw std::runtime_error("Element not found");
     }
     auto elements_iter = name_map_iter->second;
+    Element<T> removed_element(*elements_iter);
     elements_priority.erase(elements_iter);
     elements_name_mapper.erase(name_map_iter);
+
+    return removed_element;
   }
 };
 

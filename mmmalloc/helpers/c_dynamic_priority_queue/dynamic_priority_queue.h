@@ -17,7 +17,7 @@
 #include "element.h"
 
 
-/* 
+/*
  * Every element in the priority queue checks if in the future they are going to
  * be switched with their right neighbor. If this is the case they calculate
  * when this is going to happen and add an event to the events set
@@ -34,9 +34,8 @@ class DynamicPriorityQueue {
   };
 
   void add(const Element<T>& element) {
-    auto existing_element = elements_name_mapper.find(element.name);
-    if (existing_element !=  elements_name_mapper.end()) {
-      remove(element.name);
+    if (element_is_in(element.name)) {
+      throw std::runtime_error("Element already on DynamicPriorityQueue");
     }
 
     if (element.get_update_time() > last_time) {
@@ -67,9 +66,7 @@ class DynamicPriorityQueue {
       throw std::out_of_range("DynamicPriorityQueue is empty");
     }
     update(current_time);
-    Element<T> first_element(elements_priority.begin()->first);
-    remove(first_element.name);
-    return first_element;
+    return remove((elements_priority.begin()->first).name);
   }
 
   Element<T> get_min(double current_time) {
@@ -91,13 +88,18 @@ class DynamicPriorityQueue {
     return elements_priority.cend();
   }
 
-  void remove(const T& name) {
+  Element<T> remove(const T& name) {
     auto name_map_iter = elements_name_mapper.find(name);
-    remove(name_map_iter);
+    return remove(name_map_iter);
   }
 
   bool empty() const {
     return elements_priority.empty();
+  }
+
+  bool element_is_in(const T& name) const {
+    auto existing_element = elements_name_mapper.find(name);
+    return existing_element != elements_name_mapper.end();
   }
 
   operator std::string() const {
@@ -126,7 +128,7 @@ class DynamicPriorityQueue {
 
  private:
   double last_time;
-  events_set events; 
+  events_set events;
   elements_map elements_priority; // sort elements and also link to events
   elements_name_map elements_name_mapper;
 
@@ -174,7 +176,7 @@ class DynamicPriorityQueue {
     // exactly where they are going, but hints may not help if there are ties
     neighbor_it = elements_priority.insert(reference_it, neighbor);
     element_it = elements_priority.insert(reference_it, element);
-    
+
     elements_name_mapper[name] = element_it;
     elements_name_mapper[neighbor_it->first.name] = neighbor_it;
 
@@ -211,11 +213,12 @@ class DynamicPriorityQueue {
     last_time = current_time;
   }
 
-  void remove(typename elements_name_map::iterator name_map_iter) {
+  Element<T> remove(typename elements_name_map::iterator name_map_iter) {
     if(name_map_iter == elements_name_mapper.end()) {
-      return;
+      throw std::runtime_error("Element not found");
     }
     auto elements_iter = name_map_iter->second;
+    Element<T> removed_element(elements_iter->first);
     auto events_iter = elements_iter->second;
     if (elements_iter != elements_priority.begin()) {
       auto prev_element = std::prev(elements_iter);
@@ -230,6 +233,8 @@ class DynamicPriorityQueue {
     if (events_iter != events.end()) {
       events.erase(events_iter);
     }
+
+    return removed_element;
   }
 };
 

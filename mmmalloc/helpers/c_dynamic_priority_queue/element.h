@@ -70,7 +70,7 @@ class Element {
                                             cpu.relative_allocation);
     memory.credibility = calculate_credibility(current_time, memory.credibility,
                                                memory.relative_allocation);
-    
+
     update_time = current_time;
   }
 
@@ -110,24 +110,24 @@ class Element {
       const Resource& self_domin_res = get_dominant_resource(t);
       const Resource& other_domin_res =other_element.get_dominant_resource(t);
       intersection = get_priority_intersection(self_domin_res, other_domin_res);
-      if (std::isfinite(intersection) && 
+      if (std::isfinite(intersection) &&
           (intersection > 0) && (intersection < min_intersec)) {
         return update_time + intersection;
       }
-    
+
       // regime 2: t in [min_intersec, max_intersec)
       if (min_intersec < max_intersec) {
         t = update_time + (min_intersec + max_intersec)/2;
         const Resource& self_domin_res = get_dominant_resource(t);
         const Resource& other_domin_res = other_element.get_dominant_resource(t);
         intersection=get_priority_intersection(self_domin_res, other_domin_res);
-        if (std::isfinite(intersection) && (intersection > 0) && 
+        if (std::isfinite(intersection) && (intersection > 0) &&
            (intersection >= min_intersec) && (intersection < max_intersec)) {
           t = update_time + intersection;
           if (intersection == min_intersec) {
             // we can't know for sure if the intersection causes a switch
             // so we compare the derivatives
-            if (get_priority_derivative(self_domin_res, t) > 
+            if (get_priority_derivative(self_domin_res, t) >
                 get_priority_derivative(other_domin_res, t)) {
               return t;
             }
@@ -143,12 +143,12 @@ class Element {
     const Resource& other_domin_res = other_element.get_dominant_resource(t);
     intersection=get_priority_intersection(self_domin_res, other_domin_res);
     if (std::isfinite(intersection) && (intersection > 0) &&
-       (intersection >= max_intersec)) { // TODO: check if > or >=, in summary what happens when 2 intersections are at the same time
+       (intersection >= max_intersec)) {
       t = update_time + intersection;
       if (intersection == max_intersec) {
         // we can't know for sure if the intersection causes a switch
         // so we compare the derivatives
-        if (get_priority_derivative(self_domin_res, t) > 
+        if (get_priority_derivative(self_domin_res, t) >
             get_priority_derivative(other_domin_res, t)) {
           return t;
         }
@@ -158,16 +158,44 @@ class Element {
     return -1;
   }
 
+  T get_name() const {
+    return name;
+  }
+
+  double get_cpu_credibility() const {
+    return cpu.credibility;
+  }
+
+  double get_memory_credibility() const {
+    return memory.credibility;
+  }
+
   double get_priority() const {
     return std::max(calculate_priority(cpu), calculate_priority(memory));
   }
 
-  operator std::string() const {
-    return std::to_string(name) + "(" + std::to_string(get_priority()) + ")";
-  }
-
   double get_update_time() const {
     return update_time;
+  }
+
+  double get_cpu_relative_allocation() const {
+    return cpu.relative_allocation;
+  }
+
+  double get_memory_relative_allocation() const {
+    return memory.relative_allocation;
+  }
+
+  void set_cpu_relative_allocation(double cpu_relative_allocation) {
+    cpu.relative_allocation = cpu_relative_allocation;
+  }
+
+  void set_memory_relative_allocation(double memory_relative_allocation) {
+    memory.relative_allocation = memory_relative_allocation;
+  }
+
+  operator std::string() const {
+    return std::to_string(name) + "(" + std::to_string(get_priority()) + ")";
   }
 
  private:

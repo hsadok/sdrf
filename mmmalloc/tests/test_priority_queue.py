@@ -1,6 +1,6 @@
 from math import log
 
-from c_priority_queue import PriorityQueue, Element
+from mmmalloc.helpers.dynamic_priority_queue import PriorityQueue, Element
 
 system_cpu = 20.0
 system_memory = 100.0
@@ -69,11 +69,7 @@ print queue
 print 'remove'
 
 queue.remove(10)
-queue.remove(10)
 print queue
 
 queue.add(e3)
-print queue
-
-queue.remove(7)
 print queue

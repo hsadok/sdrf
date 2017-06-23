@@ -80,16 +80,10 @@ int main()
   std::cout << "remove" <<std::endl;
 
   queue.remove(10);
-  queue.remove(10);
   std::cout << std::string(queue) << std::endl;
 
   queue.add(e3);
   std::cout << std::string(queue) << std::endl;
-
-  queue.remove(7);
-  std::cout << std::string(queue) << std::endl;
-
-  // TODO check if element modified externally modifies container
 
   return 0;
 }
