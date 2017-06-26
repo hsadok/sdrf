@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import threading
 from os import path
+import csv
 
 from mmmalloc.allocators.arrival.wdrf import WDRF
 from mmmalloc.allocators.arrival.mmm_drf import MMMDRF
@@ -32,12 +33,13 @@ def wdrf(tasks_file, saving_dir, resource_percentage, weights=None):
 def mmm_drf(tasks_file, saving_dir, resource_percentage, delta,
             same_share=False):
     print 'resource percentage: ', resource_percentage
+    print 'delta: ', delta
     system_utilization = SystemUtilization(tasks_file)
     system_resources = [system_utilization.cpu_mean * resource_percentage,
                         system_utilization.memory_mean * resource_percentage]
 
     users_resources_dict = {}
-    saving_file = FileName('task_sim', '3mdrf', resource_percentage).name
+    saving_file = FileName('task_sim', '3mdrf', resource_percentage,delta).name
 
     if same_share:
         dot_split = saving_file.split('.')
@@ -54,7 +56,13 @@ def mmm_drf(tasks_file, saving_dir, resource_percentage, delta,
                 system_utilization.users_memory_mean[user] *resource_percentage
             ]
 
-    allocator = MMMDRF(system_resources, users_resources_dict, delta=delta)
+    with open(tasks_file, 'rb') as f:
+        csv_reader = csv.reader(f)
+        row = csv_reader.next()
+        start_time = int(row[0])
+
+    allocator = MMMDRF(system_resources, users_resources_dict, delta,
+                       start_time)
 
     saving_file = path.join(saving_dir, saving_file)
     simulate_task_allocation(allocator, tasks_file, saving_file)
