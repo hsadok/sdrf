@@ -73,3 +73,5 @@ print queue
 
 queue.add(e3)
 print queue
+print 10 in queue
+print 7 in queue
