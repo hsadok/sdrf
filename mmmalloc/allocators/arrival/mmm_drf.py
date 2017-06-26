@@ -49,13 +49,8 @@ class MMMDRF(Arrival):
 
         self.idle_users = {}
         for user in xrange(num_users):
-            cpu_alloc = self.allocations[user][cpu_index]
-            user_cpu = self._user_resources[user][cpu_index]
-            memory_alloc = self.allocations[user][memory_index]
-            user_memory = self._user_resources[user][memory_index]
-
-            cpu_relativ = cpu_alloc - user_cpu
-            mem_relativ = memory_alloc - user_memory
+            cpu_relativ = - self._user_resources[user][cpu_index]
+            mem_relativ = - self._user_resources[user][memory_index]
             system_cpu = self._capacities[cpu_index]
             system_mem = self._capacities[memory_index]
             cred_cpu = credibilities[user][cpu_index]
