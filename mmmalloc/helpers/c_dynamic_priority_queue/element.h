@@ -260,7 +260,7 @@ class Element {
   }
 
   double get_priority_derivative(const Resource& r, double time_delta) const {
-    return (r.relative_allocation + r.credibility)/(r.system_total * tau)
+    return (r.relative_allocation - r.credibility)/(r.system_total * tau)
            * std::exp(-time_delta/tau);
   }
 
