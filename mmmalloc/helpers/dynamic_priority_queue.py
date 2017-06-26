@@ -32,7 +32,7 @@ max_repr_size = 10000
 class PriorityQueueIterator:
     def __init__(self, queue_ptr):
         self.queue_ptr = queue_ptr
-        self.iter_ptr = lib.PriorityQueue_cbegin(self.queue_ptr)
+        self.iter_ptr = ct.c_void_p(lib.PriorityQueue_cbegin(self.queue_ptr))
 
     def __del__(self):
         lib.PriorityQueue_delete_it(self.iter_ptr)
@@ -44,14 +44,14 @@ class PriorityQueueIterator:
         if lib.PriorityQueue_it_is_end(self.queue_ptr, self.iter_ptr):
             raise StopIteration
 
-        element_ptr = lib.PriorityQueue_get_element_from_it(self.iter_ptr)
+        element_ptr = ct.c_void_p(lib.PriorityQueue_get_element_from_it(self.iter_ptr))
         lib.PriorityQueue_it_next(self.iter_ptr)
         return Element(obj=element_ptr)
 
 
 class PriorityQueue(object):
     def __init__(self):
-        self.obj = lib.PriorityQueue_new()
+        self.obj = ct.c_void_p(lib.PriorityQueue_new())
 
     def __del__(self):
         lib.PriorityQueue_delete(self.obj)
@@ -68,16 +68,16 @@ class PriorityQueue(object):
         lib.PriorityQueue_add(self.obj, element.obj)
 
     def pop(self, current_time):
-        element_obj = lib.PriorityQueue_pop(self.obj,ct.c_double(current_time))
+        element_obj = ct.c_void_p(lib.PriorityQueue_pop(self.obj,ct.c_double(current_time)))
         return Element(obj=element_obj)
 
     def get_min(self, current_time):
-        element_obj = lib.PriorityQueue_get_min(self.obj,
-                                                ct.c_double(current_time))
+        element_obj = ct.c_void_p(lib.PriorityQueue_get_min(self.obj,
+                                                ct.c_double(current_time)))
         return Element(obj=element_obj)
 
     def remove(self, name):
-        element_obj = lib.PriorityQueue_remove(self.obj, name)
+        element_obj = ct.c_void_p(lib.PriorityQueue_remove(self.obj, name))
         return Element(obj=element_obj)
 
     def is_empty(self):
@@ -93,7 +93,7 @@ class PriorityQueue(object):
 class DynamicPriorityQueueIterator:
     def __init__(self, queue_ptr):
         self.queue_ptr = queue_ptr
-        self.iter_ptr = lib.DynamicPriorityQueue_cbegin(self.queue_ptr)
+        self.iter_ptr = ct.c_void_p(lib.DynamicPriorityQueue_cbegin(self.queue_ptr))
 
     def __del__(self):
         lib.DynamicPriorityQueue_delete_it(self.iter_ptr)
@@ -105,15 +105,15 @@ class DynamicPriorityQueueIterator:
         if lib.DynamicPriorityQueue_it_is_end(self.queue_ptr, self.iter_ptr):
             raise StopIteration
 
-        element_ptr = lib.DynamicPriorityQueue_get_element_from_it(
-            self.iter_ptr)
+        element_ptr = ct.c_void_p(lib.DynamicPriorityQueue_get_element_from_it(
+            self.iter_ptr))
         lib.DynamicPriorityQueue_it_next(self.iter_ptr)
         return Element(obj=element_ptr)
 
 
 class DynamicPriorityQueue(object):
     def __init__(self):
-        self.obj = lib.DynamicPriorityQueue_new()
+        self.obj = ct.c_void_p(lib.DynamicPriorityQueue_new())
 
     def __del__(self):
         lib.DynamicPriorityQueue_delete(self.obj)
@@ -130,17 +130,17 @@ class DynamicPriorityQueue(object):
         lib.DynamicPriorityQueue_add(self.obj, element.obj)
 
     def pop(self, current_time):
-        element_obj = lib.DynamicPriorityQueue_pop(self.obj,
-                                                   ct.c_double(current_time))
+        element_obj = ct.c_void_p(lib.DynamicPriorityQueue_pop(self.obj,
+                                                   ct.c_double(current_time)))
         return Element(obj=element_obj)
 
     def get_min(self, current_time):
-        element_obj = lib.DynamicPriorityQueue_get_min(
-            self.obj, ct.c_double(current_time))
+        element_obj = ct.c_void_p(lib.DynamicPriorityQueue_get_min(
+            self.obj, ct.c_double(current_time)))
         return Element(obj=element_obj)
 
     def remove(self, name):
-        element_obj = lib.DynamicPriorityQueue_remove(self.obj, name)
+        element_obj = ct.c_void_p(lib.DynamicPriorityQueue_remove(self.obj, name))
         return Element(obj=element_obj)
 
     def is_empty(self):
@@ -159,15 +159,13 @@ class Element(object):
                  system_memory=None, memory_credibility=None,
                  memory_relative_allocation=None, obj=None):
         if obj is None:
-            self.obj = lib.Element_new(name,
-                                       ct.c_double(update_time),
-                                       ct.c_double(tau),
-                                       ct.c_double(system_cpu),
-                                       ct.c_double(cpu_credibility),
-                                       ct.c_double(cpu_relative_allocation),
-                                       ct.c_double(system_memory),
-                                       ct.c_double(memory_credibility),
-                                       ct.c_double(memory_relative_allocation))
+            self.obj = ct.c_void_p(lib.Element_new(
+                name, ct.c_double(update_time), ct.c_double(tau),
+                ct.c_double(system_cpu), ct.c_double(cpu_credibility),
+                ct.c_double(cpu_relative_allocation),
+                ct.c_double(system_memory), ct.c_double(memory_credibility),
+                ct.c_double(memory_relative_allocation))
+            )
         else:
             self.obj = obj
 
@@ -191,27 +189,27 @@ class Element(object):
 
     @property
     def cpu_credibility(self):
-        return lib.Element_get_cpu_credibility(self.obj)
+        return ct.c_double(lib.Element_get_cpu_credibility(self.obj))
 
     @property
     def memory_credibility(self):
-        return lib.Element_get_memory_credibility(self.obj)
+        return ct.c_double(lib.Element_get_memory_credibility(self.obj))
 
     @property
     def priority(self):
-        return lib.Element_get_priority(self.obj)
+        return ct.c_double(lib.Element_get_priority(self.obj))
 
     @property
     def update_time(self):
-        return lib.Element_get_update_time(self.obj)
+        return ct.c_double(lib.Element_get_update_time(self.obj))
 
     @property
     def cpu_relative_allocation(self):
-        return lib.Element_get_cpu_relative_allocation(self.obj)
+        return ct.c_double(lib.Element_get_cpu_relative_allocation(self.obj))
 
     @property
     def memory_relative_allocation(self):
-        return lib.Element_get_memory_relative_allocation(self.obj)
+        return ct.c_double(lib.Element_get_memory_relative_allocation(self.obj))
 
     @cpu_relative_allocation.setter
     def cpu_relative_allocation(self, value):
