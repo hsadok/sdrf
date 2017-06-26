@@ -9,6 +9,10 @@
 
 #include <cmath>
 
+#include "floating_point.h"
+
+#define TIME_EPS 0.001
+
 template<typename T>
 class Element {
  public:
@@ -37,21 +41,35 @@ class Element {
     double my_priority = get_priority();
     double rhs_priority = rhs.get_priority();
 
-    if (my_priority != rhs_priority) {
+    const FloatingPoint<float> fp_my_priority(my_priority);
+    const FloatingPoint<float> fp_rhs_priority(rhs_priority);
+    if (!fp_my_priority.AlmostEquals(fp_rhs_priority)) {
       return my_priority < rhs_priority;
     }
 
-    const Resource& my_dominant_resource = get_dominant_resource();
-    const Resource& rhs_dominant_resource = rhs.get_dominant_resource();
-    double my_growth = my_dominant_resource.relative_allocation /
-            my_dominant_resource.system_total;
-    double rhs_growth = rhs_dominant_resource.relative_allocation /
-            rhs_dominant_resource.system_total;
+    const Resource& my_dominant_resource = get_dominant_resource(update_time);
+    const Resource& rhs_dominant_resource = rhs.get_dominant_resource(update_time);
+    double my_growth = get_priority_derivative(my_dominant_resource, 0);
+    double rhs_growth = get_priority_derivative(rhs_dominant_resource, 0);
 
-    if (my_growth != rhs_growth) {
+    const FloatingPoint<float> fp_my_growth(my_growth);
+    const FloatingPoint<float> fp_rhs_growth(rhs_growth);
+    if (!fp_my_growth.AlmostEquals(fp_rhs_growth)) {
       return my_growth < rhs_growth;
     }
 
+    // Too close, we now get the switch time and if positive we consider the
+    // order as is, otherwise we invert it
+    double switch_time = get_switch_time(rhs);
+    if (switch_time < 0) {
+      return my_priority < rhs_priority;
+    }
+    if (switch_time > 0) {
+      if ((switch_time - update_time) < TIME_EPS) {
+        return my_priority > rhs_priority;
+      }
+      return my_priority < rhs_priority;
+    }
     return name < rhs.name;
   }
 
@@ -64,7 +82,7 @@ class Element {
       return;
     }
     if (current_time < update_time) {
-      throw std::runtime_error("Can't update to the past");
+      throw std::runtime_error("Can't update Element to the past");
     }
     cpu.credibility = calculate_credibility(current_time, cpu.credibility,
                                             cpu.relative_allocation);
@@ -127,8 +145,8 @@ class Element {
           if (intersection == min_intersec) {
             // we can't know for sure if the intersection causes a switch
             // so we compare the derivatives
-            if (get_priority_derivative(self_domin_res, t) >
-                get_priority_derivative(other_domin_res, t)) {
+            if (get_priority_derivative(self_domin_res, intersection) >
+                get_priority_derivative(other_domin_res, intersection)) {
               return t;
             }
           }
@@ -148,8 +166,8 @@ class Element {
       if (intersection == max_intersec) {
         // we can't know for sure if the intersection causes a switch
         // so we compare the derivatives
-        if (get_priority_derivative(self_domin_res, t) >
-            get_priority_derivative(other_domin_res, t)) {
+        if (get_priority_derivative(self_domin_res, intersection) >
+            get_priority_derivative(other_domin_res, intersection)) {
           return t;
         }
       }
@@ -241,9 +259,9 @@ class Element {
     return (res.relative_allocation + credibility) / res.system_total;
   }
 
-  double get_priority_derivative(const Resource& r, double current_time) const {
-    return (r.relative_allocation - r.credibility)/(r.system_total * tau)
-           * std::exp(-current_time/tau);
+  double get_priority_derivative(const Resource& r, double time_delta) const {
+    return (r.relative_allocation + r.credibility)/(r.system_total * tau)
+           * std::exp(-time_delta/tau);
   }
 
   const Resource& get_dominant_resource(const double time=0) const {

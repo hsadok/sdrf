@@ -118,11 +118,29 @@ class DynamicPriorityQueue {
   }
 
   void update(double current_time) {
-    check_time(current_time);
+    if (last_time > current_time) {
+      throw std::runtime_error("DynamicPriorityQueue can't go back in time...");
+    }
     auto event_it = events.begin();
-    while( !events.empty() && (event_it->first <= current_time) ) {
-      trigger_event(event_it->second, current_time);
+    while( (event_it != events.end()) && (event_it->first < current_time) ) {
+      last_time = event_it->first + TIME_EPS;
+      trigger_event(event_it->second, last_time);
       event_it = events.begin();
+    }
+    last_time = current_time;
+    // check_order();  // useful to check correctness
+  }
+
+  void check_order() {
+    double last_priority = -100;
+    for (auto element : elements_priority) {
+      Element<T> cpy(element.first);
+      cpy.update(last_time);
+      if (last_priority > cpy.get_priority()) {
+        // std::cout << "conflict name: " << cpy.name << std::endl;
+        throw std::logic_error("DynamicPriorityQueue not properly ordered");
+      }
+      last_priority = cpy.get_priority();
     }
   }
 
@@ -198,19 +216,15 @@ class DynamicPriorityQueue {
     if (std::next(iter) != elements_priority.end()) {
       double switch_time = iter->first.get_switch_time(std::next(iter)->first);
       if (switch_time >= 0) {
-        auto event_iter = events.emplace(switch_time, iter->first.name).first;
-        iter->second = event_iter;
+        auto return_pair = events.emplace(switch_time, iter->first.name);
+        if (!return_pair.second) {
+          throw std::logic_error("Events conflict");
+        }
+        iter->second = return_pair.first;
         return;
       }
     }
     iter->second = events.end();
-  }
-
-  void check_time(double current_time) {
-    if (last_time > current_time) {
-      throw std::runtime_error("DynamicPriorityQueue can't go back in time...");
-    }
-    last_time = current_time;
   }
 
   Element<T> remove(typename elements_name_map::iterator name_map_iter) {
