@@ -2,6 +2,7 @@
 #ifndef PRIORITY_QUEUE_H
 #define PRIORITY_QUEUE_H
 
+#include <iostream>
 #include <string>
 #include <set>
 #include <unordered_map>
@@ -16,6 +17,7 @@ class PriorityQueue {
   typedef std::unordered_map<T, typename elements_set::iterator> elements_name_map; // <element_name, element_it>
 
   PriorityQueue() {
+    std::cerr << "NOT USING EVENTS" << std::endl;
     last_time = -1;
   };
 
