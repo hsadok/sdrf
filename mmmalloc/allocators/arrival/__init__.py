@@ -162,5 +162,7 @@ class Arrival(object):
 
             if not pass_constraints:
                 queue.remove(user)
+            else:
+                break  # the user with best priority cannot be fulfilled, stop
 
         return picked_task
