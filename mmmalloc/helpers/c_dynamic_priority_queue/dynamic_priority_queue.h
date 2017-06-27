@@ -10,6 +10,7 @@
 #include <set>
 #include <unordered_set>
 #include <map>
+#include <vector>
 #include <unordered_map>
 
 #include "element.h"
@@ -24,7 +25,7 @@ class DynamicPriorityQueue {
  public:
   typedef std::set<std::pair<dpq_time_t, dpq_name_t>> events_set; // <time, element_name>
   typedef std::map<Element, events_set::iterator> elements_map; // <element, event_it>
-  typedef std::unordered_map<dpq_name_t, elements_map::iterator> elements_name_map; // <element_name, element_it>
+  typedef std::vector<elements_map::iterator> elements_name_map;
 
   DynamicPriorityQueue();
   void add(const Element& element);
@@ -50,7 +51,6 @@ class DynamicPriorityQueue {
   void trigger_event(elements_map::iterator& element_it,dpq_time_t current_time,
     std::unordered_set<dpq_name_t>& pending_removal, int run=0);
   void update_event(elements_map::iterator iter);
-  Element remove(elements_name_map::iterator name_map_iter);
 };
 
 #endif // DYNAMIC_PRIORITY_QUEUE_H

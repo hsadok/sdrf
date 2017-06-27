@@ -13,7 +13,7 @@
 class PriorityQueue {
  public:
   typedef std::set<Element> elements_set; // <element, event_it>
-  typedef std::unordered_map<dpq_name_t, typename elements_set::iterator> elements_name_map; // <element_name, element_it>
+  typedef std::unordered_map<dpq_name_t, elements_set::iterator> elements_name_map; // <element_name, element_it>
 
   PriorityQueue();
   void add(const Element& element);

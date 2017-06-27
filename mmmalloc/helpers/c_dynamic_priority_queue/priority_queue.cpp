@@ -114,7 +114,7 @@ void PriorityQueue::check_time(dpq_time_t current_time) {
   last_time = current_time;
 }
 
-Element PriorityQueue::remove(typename elements_name_map::iterator name_map_iter) {
+Element PriorityQueue::remove(elements_name_map::iterator name_map_iter) {
   if(name_map_iter == elements_name_mapper.end()) {
     throw std::runtime_error("Element not found");
   }
