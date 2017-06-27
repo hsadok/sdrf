@@ -11,7 +11,7 @@
 
 #define TIME_EPS 0.001
 
-typedef int dpq_name_t;
+typedef unsigned dpq_name_t;
 typedef double dpq_time_t;
 
 

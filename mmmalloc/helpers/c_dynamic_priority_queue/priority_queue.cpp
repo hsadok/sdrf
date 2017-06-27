@@ -12,7 +12,7 @@
 PriorityQueue::PriorityQueue() {
   std::cerr << "NOT USING EVENTS" << std::endl;
   last_time = -1;
-};
+}
 
 void PriorityQueue::add(const Element& element) {
   if (element_is_in(element.name)) {
