@@ -7,10 +7,6 @@
 #include <string>
 #include <cmath>
 
-#include "floating_point.h"
-
-#define TIME_EPS 0.001
-
 typedef unsigned dpq_name_t;
 typedef double dpq_time_t;
 
