@@ -23,8 +23,8 @@
  */
 class DynamicPriorityQueue {
  public:
-  typedef std::set<std::pair<dpq_time_t, dpq_name_t>> events_set; // <time, element_name>
-  typedef std::map<Element, events_set::iterator> elements_map; // <element, event_it>
+  typedef std::set<std::pair<dpq_time_t, dpq_name_t>> events_set; //time, name
+  typedef std::map<Element, events_set::iterator> elements_map; //element, event
   typedef std::vector<elements_map::iterator> elements_name_map;
 
   DynamicPriorityQueue();
@@ -41,15 +41,13 @@ class DynamicPriorityQueue {
   void check_order();
 
  private:
-  int events_triggered;
-  int max_events;
   dpq_time_t last_time;
   events_set events;
   elements_map elements_priority; // sort elements and also link to events
   elements_name_map elements_name_mapper;
 
   void trigger_event(elements_map::iterator& element_it,dpq_time_t current_time,
-    std::unordered_set<dpq_name_t>& pending_removal, int run=0);
+    std::unordered_set<dpq_name_t>& pending_removal);
   void update_event(elements_map::iterator iter);
 };
 
