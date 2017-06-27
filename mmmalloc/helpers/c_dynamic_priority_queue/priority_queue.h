@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string>
 #include <set>
-#include <unordered_map>
+#include <vector>
 #include <stdexcept>
 
 #include "element.h"
@@ -13,7 +13,7 @@
 class PriorityQueue {
  public:
   typedef std::set<Element> elements_set; // element, event
-  typedef std::unordered_map<dpq_name_t, elements_set::iterator> elements_name_map; // name, element
+  typedef std::vector<elements_set::iterator> elements_name_map; // name, element
 
   PriorityQueue();
   void add(const Element& element);
@@ -31,9 +31,6 @@ class PriorityQueue {
   dpq_time_t last_time;
   elements_set elements_priority; // sort elements
   elements_name_map elements_name_mapper;
-
-  void check_time(dpq_time_t current_time);
-  Element remove(elements_name_map::iterator name_map_iter);
 };
 
 #endif // PRIORITY_QUEUE_H

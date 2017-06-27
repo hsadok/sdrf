@@ -89,6 +89,10 @@ class PriorityQueue(object):
     def sorted_elements(self):
         return PriorityQueueIterator(self.obj)
 
+    @staticmethod
+    def print_stats():
+        lib.PriorityQueue_print_stats()
+
 
 class DynamicPriorityQueueIterator:
     def __init__(self, queue_ptr):
@@ -151,6 +155,10 @@ class DynamicPriorityQueue(object):
 
     def sorted_elements(self):
         return DynamicPriorityQueueIterator(self.obj)
+
+    @staticmethod
+    def print_stats():
+        lib.DynamicPriorityQueue_print_stats()
 
 
 class Element(object):

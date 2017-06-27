@@ -131,6 +131,9 @@ DynamicPriorityQueue::operator std::string() const {
 }
 
 void DynamicPriorityQueue::update(dpq_time_t current_time) {
+  if (last_time == current_time) {
+    return;
+  }
   if (last_time > current_time) {
     throw std::runtime_error("DynamicPriorityQueue can't go back in time...");
   }
@@ -175,10 +178,10 @@ void DynamicPriorityQueue::check_order() {
 
 void DynamicPriorityQueue::trigger_event(elements_map::iterator& element_it,
     dpq_time_t current_time, std::unordered_set<dpq_name_t>& pending_removal) {
-  auto return_pair = pending_removal.insert(element_it->first.name);
-  if (!return_pair.second) {
-    return;
-  }
+  pending_removal.insert(element_it->first.name);
+//  if (!return_pair.second) {
+//    return;
+//  }
   auto neighbor_it = std::next(element_it);
   if (neighbor_it == elements_priority.end()) {
       throw std::logic_error("Event in the last element should be impossible");

@@ -5,7 +5,7 @@ from math import log
 from mmmalloc.allocators.arrival import Arrival, Task
 from mmmalloc.helpers.priority_queue import PriorityQueue
 
-from mmmalloc.helpers.dynamic_priority_queue import DynamicPriorityQueue, Element
+from mmmalloc.helpers.dynamic_priority_queue import PriorityQueue as DynamicPriorityQueue, Element
 
 
 # Using those indexes make stuff less generic, but generality was kinda
@@ -107,6 +107,10 @@ class MMMDRF(Arrival):
         # the queue), by calling _insert_user the user is removed and
         # reinserted with the new credibility
         self._insert_user(task.user)
+
+    @staticmethod
+    def print_stats():
+        QueueProxy.print_stats()
 
 
 # This class has 2 main purposes, to make sure the credibility remains up to
