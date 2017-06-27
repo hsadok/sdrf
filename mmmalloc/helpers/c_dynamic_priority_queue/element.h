@@ -53,9 +53,10 @@ class Element {
 
   double calculate_credibility(dpq_time_t current_time,
     double previous_credibility, double relative_allocation) const;
-  dpq_time_t get_priority_intersection(const Resource& r1, const Resource& r2)const;
+  dpq_time_t get_priority_intersection(const Resource& r1,
+                                       const Resource& r2) const;
   double calculate_priority(const Resource& res, const dpq_time_t time=0) const;
-  double get_priority_derivative(const Resource& r, dpq_time_t time_delta)const;
+  double get_priority_derivative(const Resource& r, dpq_time_t time_delta) const;
   const Resource& get_dominant_resource(const dpq_time_t time=0) const;
 };
 

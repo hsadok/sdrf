@@ -68,45 +68,54 @@ extern "C" {
   void DynamicPriorityQueue_add(DynamicPriorityQueue* queue, Element* element) {
     queue->add(*element);
   }
-  Element* DynamicPriorityQueue_pop(DynamicPriorityQueue* queue, double current_time) {
+  Element* DynamicPriorityQueue_pop(DynamicPriorityQueue* queue,
+                                    double current_time) {
     Element* element = new Element(queue->pop(current_time));
     return element;
   }
-  Element* DynamicPriorityQueue_get_min(DynamicPriorityQueue* queue, double current_time) {
+  Element* DynamicPriorityQueue_get_min(DynamicPriorityQueue* queue,
+                                        double current_time) {
     Element* element = new Element(queue->get_min(current_time));
     return element;
   }
-  DynamicPriorityQueue_it* DynamicPriorityQueue_cbegin(DynamicPriorityQueue* queue) {
+  DynamicPriorityQueue_it* DynamicPriorityQueue_cbegin(
+          DynamicPriorityQueue* queue) {
     DynamicPriorityQueue_it* it = new DynamicPriorityQueue_it(queue->cbegin());
     return it;
   }
   void DynamicPriorityQueue_it_next(DynamicPriorityQueue_it* it) {
     ++(*it);
   }
-  Element* DynamicPriorityQueue_get_element_from_it(DynamicPriorityQueue_it* it) {
+  Element* DynamicPriorityQueue_get_element_from_it(
+          DynamicPriorityQueue_it* it) {
     Element* element = new Element((*it)->first);
     return element;
   }
-  int DynamicPriorityQueue_it_is_end(DynamicPriorityQueue* queue, DynamicPriorityQueue_it* it) {
+  int DynamicPriorityQueue_it_is_end(DynamicPriorityQueue* queue,
+                                     DynamicPriorityQueue_it* it) {
     return *it == queue->cend();
   }
   void DynamicPriorityQueue_delete_it(DynamicPriorityQueue_it* it) {
     delete it;
   }
-  Element* DynamicPriorityQueue_remove(DynamicPriorityQueue* queue, dpq_name_t name) {
+  Element* DynamicPriorityQueue_remove(DynamicPriorityQueue* queue,
+                                       dpq_name_t name) {
     Element* element = new Element(queue->remove(name));
     return element;
   }
   int DynamicPriorityQueue_empty(DynamicPriorityQueue* queue) {
     return queue->empty();
   }
-  int DynamicPriorityQueue_element_is_in(DynamicPriorityQueue* queue, dpq_name_t name) {
+  int DynamicPriorityQueue_element_is_in(DynamicPriorityQueue* queue,
+                                         dpq_name_t name) {
     return queue->element_is_in(name);
   }
-  void DynamicPriorityQueue_update(DynamicPriorityQueue* queue, double current_time) {
+  void DynamicPriorityQueue_update(DynamicPriorityQueue* queue,
+                                   double current_time) {
     return queue->update(current_time);
   }
-  void DynamicPriorityQueue_string(DynamicPriorityQueue* queue, char* buffer, int max_size) {
+  void DynamicPriorityQueue_string(DynamicPriorityQueue* queue, char* buffer,
+                                   int max_size) {
     std::strncpy(buffer, std::string(*queue).c_str(), max_size);
   }
   void DynamicPriorityQueue_delete(DynamicPriorityQueue* queue) {
@@ -114,12 +123,14 @@ extern "C" {
   }
 
 
-  Element* Element_new(dpq_name_t name, double update_time, double tau, double system_cpu,
-                               double cpu_credibility, double cpu_relative_allocation,
-                               double system_memory, double memory_credibility,
-                               double memory_relative_allocation) {
-    return new Element(name, update_time, tau, system_cpu, cpu_credibility, cpu_relative_allocation,
-                               system_memory, memory_credibility, memory_relative_allocation);
+  Element* Element_new(dpq_name_t name, double update_time, double tau,
+                       double system_cpu, double cpu_credibility,
+                       double cpu_relative_allocation, double system_memory,
+                       double memory_credibility,
+                       double memory_relative_allocation) {
+    return new Element(name, update_time, tau, system_cpu, cpu_credibility,
+                       cpu_relative_allocation, system_memory,
+                       memory_credibility, memory_relative_allocation);
   }
   void Element_update(Element* element, double current_time) {
     element->update(current_time);
@@ -145,10 +156,13 @@ extern "C" {
   double Element_get_memory_relative_allocation(Element* element) {
     return element->get_memory_relative_allocation();
   }
-  void Element_set_cpu_relative_allocation(Element* element, double cpu_relative_allocation) {
+  void Element_set_cpu_relative_allocation(Element* element,
+                                           double cpu_relative_allocation) {
     element->set_cpu_relative_allocation(cpu_relative_allocation);
   }
-  void Element_set_memory_relative_allocation(Element* element, double memory_relative_allocation) {
+  void Element_set_memory_relative_allocation(Element* element,
+                                              double memory_relative_allocation)
+  {
     element->set_memory_relative_allocation(memory_relative_allocation);
   }
   void Element_string(Element* element, char* buffer, int max_size) {
