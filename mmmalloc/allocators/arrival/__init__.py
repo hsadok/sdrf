@@ -108,6 +108,7 @@ class Arrival(object):
                 self.current_time = task.submit_time
             self._insert_user(task.user)
             self.users_queues[task.user].append(task)
+        self.print_stats('after last task arrival')
         self._finish_tasks_until(simulation_limit)
 
     def _finish_tasks_until(self, next_time):
@@ -166,3 +167,6 @@ class Arrival(object):
                 break  # the user with best priority cannot be fulfilled, stop
 
         return picked_task
+
+    def print_stats(self, extra_info=None):
+        pass

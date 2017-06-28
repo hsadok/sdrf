@@ -5,7 +5,7 @@ from math import log
 from mmmalloc.allocators.arrival import Arrival, Task
 from mmmalloc.helpers.priority_queue import PriorityQueue
 
-from mmmalloc.helpers.dynamic_priority_queue import PriorityQueue as DynamicPriorityQueue, Element
+from mmmalloc.helpers.dynamic_priority_queue import DynamicPriorityQueue, Element
 
 
 # Using those indexes make stuff less generic, but generality was kinda
@@ -38,7 +38,10 @@ class MMMDRF(Arrival):
 
         self._user_resources = np.array(users_resources)
         self.delta = delta
-        self.tau = -1.0/log(delta)
+        if delta == 0:
+            self.tau = 0
+        else:
+            self.tau = -1.0/log(delta)
 
         self._user_resources_queue = PriorityQueue(np.zeros(self.num_users))
 
@@ -108,9 +111,14 @@ class MMMDRF(Arrival):
         # reinserted with the new credibility
         self._insert_user(task.user)
 
-    @staticmethod
-    def print_stats():
-        QueueProxy.print_stats()
+    def print_stats(self, extra_info=None):
+        info_dict = {
+            'delta': self.delta,
+            'capacities': list(self._capacities)
+        }
+        if extra_info is not None:
+            info_dict['extra_info'] = extra_info
+        QueueProxy.print_stats('time_stats.txt', info_dict)
 
 
 # This class has 2 main purposes, to make sure the credibility remains up to

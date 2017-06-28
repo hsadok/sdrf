@@ -1,4 +1,7 @@
 
+#include <ostream>
+#include <iostream>
+#include <fstream>
 #include <string>
 #include <cstring>
 #include <chrono>
@@ -26,30 +29,36 @@ struct QueueTimes {
   std::chrono::nanoseconds update_t;
   std::chrono::nanoseconds string_t;
   std::chrono::nanoseconds delete_t;
-  void print_stats() {
-    std::cout << "{" << std::endl;
-    std::cout << "  \"new\": " << new_t.count() << "," << std::endl;
-    std::cout << "  \"add\": " << add_t.count() << "," << std::endl;
-    std::cout << "  \"pop\": " << pop_t.count() << "," << std::endl;
-    std::cout << "  \"get_min\": " << get_min_t.count() << "," << std::endl;
-    std::cout << "  \"cbegin\": " << cbegin_t.count() << "," << std::endl;
-    std::cout << "  \"it_next\": " << it_next_t.count() << "," << std::endl;
-    std::cout << "  \"get_element_from_it\": " << get_element_from_it_t.count() << "," << std::endl;
-    std::cout << "  \"it_is_end\": " << it_is_end_t.count() << "," << std::endl;
-    std::cout << "  \"delete_it\": " << delete_it_t.count() << "," << std::endl;
-    std::cout << "  \"remove\": " << remove_t.count() << "," << std::endl;
-    std::cout << "  \"empty\": " << empty_t.count() << "," << std::endl;
-    std::cout << "  \"element_is_in\": " << element_is_in_t.count() << "," << std::endl;
-    std::cout << "  \"update\": " << update_t.count() << "," << std::endl;
-    std::cout << "  \"string\": " << string_t.count() << "," << std::endl;
-    std::cout << "  \"delete\": " << delete_t.count() << "," << std::endl;
+  void print_stats_to_stream(char* info, std::ostream& stream) {
+    stream << "{" << std::endl;
+    stream << "  \"info\": " << info << "," << std::endl;
+    stream << "  \"new\": " << new_t.count() << "," << std::endl;
+    stream << "  \"add\": " << add_t.count() << "," << std::endl;
+    stream << "  \"pop\": " << pop_t.count() << "," << std::endl;
+    stream << "  \"get_min\": " << get_min_t.count() << "," << std::endl;
+    stream << "  \"cbegin\": " << cbegin_t.count() << "," << std::endl;
+    stream << "  \"it_next\": " << it_next_t.count() << "," << std::endl;
+    stream << "  \"get_element_from_it\": " << get_element_from_it_t.count() << "," << std::endl;
+    stream << "  \"it_is_end\": " << it_is_end_t.count() << "," << std::endl;
+    stream << "  \"delete_it\": " << delete_it_t.count() << "," << std::endl;
+    stream << "  \"remove\": " << remove_t.count() << "," << std::endl;
+    stream << "  \"empty\": " << empty_t.count() << "," << std::endl;
+    stream << "  \"element_is_in\": " << element_is_in_t.count() << "," << std::endl;
+    stream << "  \"update\": " << update_t.count() << "," << std::endl;
+    stream << "  \"string\": " << string_t.count() << "," << std::endl;
+    stream << "  \"delete\": " << delete_t.count() << "," << std::endl;
     std::chrono::nanoseconds total = new_t + add_t + pop_t + get_min_t
             + cbegin_t + it_next_t + get_element_from_it_t + it_is_end_t
             + delete_it_t + remove_t + empty_t + element_is_in_t + update_t
             + string_t + delete_t;
-    std::cout << "  \"total\": " << total.count() << std::endl;
-    std::cout << "}" << std::endl;
-    
+    stream << "  \"total\": " << total.count() << std::endl;
+    stream << "}" << std::endl;
+  }
+  void print_stats(char* info, char* file_name) {
+    std::ofstream out_file;
+    out_file.open(file_name, std::ios_base::app);
+    print_stats_to_stream(info, out_file);
+    print_stats_to_stream(info, std::cout);
   }
 };
 
@@ -177,8 +186,8 @@ extern "C" {
 
     priority_queue_times.delete_t += std::chrono::high_resolution_clock::now() - ref_time;
   }
-  void PriorityQueue_print_stats() {
-    priority_queue_times.print_stats();
+  void PriorityQueue_print_stats(char* info, char* file_name) {
+    priority_queue_times.print_stats(info, file_name);
   }
 
 
@@ -306,8 +315,8 @@ extern "C" {
 
     dynamic_priority_queue_times.delete_t += std::chrono::high_resolution_clock::now() - ref_time;
   }
-  void DynamicPriorityQueue_print_stats() {
-    dynamic_priority_queue_times.print_stats();
+  void DynamicPriorityQueue_print_stats(char* info, char* file_name) {
+    dynamic_priority_queue_times.print_stats(info, file_name);
   }
 
 

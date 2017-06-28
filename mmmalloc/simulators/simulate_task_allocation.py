@@ -67,7 +67,7 @@ def mmm_drf(tasks_file, saving_dir, resource_percentage, delta,
     saving_file = path.join(saving_dir, saving_file)
     simulate_task_allocation(allocator, tasks_file, saving_file)
 
-    allocator.print_stats()
+    allocator.print_stats('end -- resource_percentage: %f' % resource_percentage)
 
 
 def simulate_task_allocation(allocator, tasks_file, saving_file):

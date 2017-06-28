@@ -1,3 +1,4 @@
+import json
 from os.path import dirname, realpath, join
 import ctypes as ct
 
@@ -90,8 +91,15 @@ class PriorityQueue(object):
         return PriorityQueueIterator(self.obj)
 
     @staticmethod
-    def print_stats():
-        lib.PriorityQueue_print_stats()
+    def print_stats(file_name, info=None):
+        if info is not None:
+            info['queue'] = 'PriorityQueue'
+            info_string = json.dumps(info)
+        else:
+            info_string = ''
+        c_info = ct.c_char_p(info_string)
+        c_file_name = ct.c_char_p(file_name)
+        lib.PriorityQueue_print_stats(c_info, c_file_name)
 
 
 class DynamicPriorityQueueIterator:
@@ -157,8 +165,15 @@ class DynamicPriorityQueue(object):
         return DynamicPriorityQueueIterator(self.obj)
 
     @staticmethod
-    def print_stats():
-        lib.DynamicPriorityQueue_print_stats()
+    def print_stats(file_name, info=None):
+        if info is not None:
+            info['queue'] = 'DynamicPriorityQueue'
+            info_string = json.dumps(info)
+        else:
+            info_string = ''
+        c_info = ct.c_char_p(info_string)
+        c_file_name = ct.c_char_p(file_name)
+        lib.DynamicPriorityQueue_print_stats(c_info, c_file_name)
 
 
 class Element(object):
