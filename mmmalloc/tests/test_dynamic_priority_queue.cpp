@@ -19,13 +19,13 @@ int main()
 
   double update_time = 1.0;
 
-  DynamicPriorityQueue<int> queue = DynamicPriorityQueue<int>();
+  DynamicPriorityQueue queue = DynamicPriorityQueue();
 
   double c_o_cpu = -8.0;
   double c_o_mem = 1.0;
   double o_cpu = 5.0;
   double o_mem = 5.0;
-  Element<int> e1 = Element<int>(10, update_time, tau, system_cpu, c_o_cpu, o_cpu,
+  Element e1 = Element(10, update_time, tau, system_cpu, c_o_cpu, o_cpu,
     system_memory, c_o_mem, o_mem);
   queue.add(e1);
 
@@ -37,7 +37,7 @@ int main()
   c_o_mem = 3.3;
   o_cpu = 0.0;
   o_mem = 3.3;
-  Element<int> e2 = Element<int>(5, update_time, tau, system_cpu, c_o_cpu, o_cpu,
+  Element e2 = Element(5, update_time, tau, system_cpu, c_o_cpu, o_cpu,
     system_memory, c_o_mem, o_mem);
   queue.add(e2);
   std::cout << std::string(queue) << std::endl;
@@ -55,7 +55,7 @@ int main()
   c_o_mem = 1.0;
   o_cpu = 5.0;
   o_mem = 5.0;
-  Element<int> e3 = Element<int>(10, update_time, tau, system_cpu, c_o_cpu, o_cpu,
+  Element e3 = Element(10, update_time, tau, system_cpu, c_o_cpu, o_cpu,
     system_memory, c_o_mem, o_mem);
   queue.add(e3);
   queue.add(e2);
