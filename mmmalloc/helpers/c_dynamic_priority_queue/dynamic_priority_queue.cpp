@@ -19,6 +19,9 @@
 // #define LOGIC_CHECK
 
 DynamicPriorityQueue::DynamicPriorityQueue() {
+  #ifdef LOGIC_CHECK
+    std::cout << "LOGIC CHECK" << std::endl;
+  #endif
   last_time = -1;
 }
 
@@ -160,10 +163,12 @@ void DynamicPriorityQueue::update(dpq_time_t current_time) {
   }
 
   std::forward_list<Element> pending_reinsertion;
-
-  elements_map::iterator element_it;
+  elements_map::iterator element_it, neighbor_it;
   while( (event_it != events.end()) && (event_it->first < current_time) ) {
-    trigger_event(event_it->second, current_time, pending_reinsertion);
+    element_it = elements_name_mapper.at(event_it->second);
+    neighbor_it = std::next(element_it);
+    pending_reinsertion.push_front(remove(event_it->second));
+    pending_reinsertion.push_front(remove(neighbor_it->first.name));
     event_it = events.begin();
   }
 
@@ -177,35 +182,6 @@ void DynamicPriorityQueue::update(dpq_time_t current_time) {
   #ifdef LOGIC_CHECK
     check_order();
   #endif
-}
-
-void DynamicPriorityQueue::trigger_event(dpq_name_t element_name,
-  dpq_time_t current_time, std::forward_list<Element>& pending_reinsertion)
-{
-  auto element_it = elements_name_mapper.at(element_name);
-  auto neighbor_it = std::next(element_it);
-  #ifdef LOGIC_CHECK
-    if (neighbor_it == elements_priority.end()) {
-        throw std::logic_error("Event in the last element should be impossible");
-    }
-  #endif
-
-  dpq_time_t switch_time;
-  do {
-    pending_reinsertion.push_front(remove(element_it->first.name));
-    if (neighbor_it == elements_priority.begin()) {
-      pending_reinsertion.push_front(remove(neighbor_it->first.name));
-      break;
-    }
-    element_it = std::prev(neighbor_it);
-    pending_reinsertion.push_front(remove(neighbor_it->first.name));
-
-    neighbor_it = std::next(element_it);
-    if (neighbor_it == elements_priority.end()) {
-      break;
-    }
-    switch_time = element_it->first.get_switch_time(neighbor_it->first);
-  } while((switch_time < current_time) && (switch_time >= last_time));
 }
 
 void DynamicPriorityQueue::update_event(elements_map::iterator iter) {
