@@ -7,23 +7,24 @@
 #include <algorithm>
 #include <functional>
 #include <string>
-#include <deque>
+#include <forward_list>
 #include <set>
-#include <unordered_set>
 #include <map>
-#include <unordered_map>
+#include <vector>
 #include <stdexcept>
 
 #include "element.h"
 #include "dynamic_priority_queue.h"
 
+// #define LOGIC_CHECK
 
 DynamicPriorityQueue::DynamicPriorityQueue() {
   last_time = -1;
 }
 
-void DynamicPriorityQueue::add(const Element& element) {
-  if (element_is_in(element.name)) {
+void DynamicPriorityQueue::add(Element element) {
+  dpq_name_t element_name = element.name;
+  if (element_is_in(element_name)) {
     throw std::runtime_error("Element already on DynamicPriorityQueue");
   }
 
@@ -31,18 +32,21 @@ void DynamicPriorityQueue::add(const Element& element) {
     update(element.get_update_time());
   }
 
-  auto element_emplace_pair = elements_priority.emplace(element,events.end());
+  auto element_emplace_pair = elements_priority.emplace(std::move(element),
+                                                        events.end());
   auto element_it = element_emplace_pair.first;
-  bool insertion_success = element_emplace_pair.second;
-  if (!insertion_success) {
-    throw std::logic_error("Element exists in elements_priority");
+  #ifdef LOGIC_CHECK
+    bool insertion_success = element_emplace_pair.second;
+    if (!insertion_success) {
+      throw std::logic_error("Element exists in elements_priority");
+    }
+  #endif
+
+  if (element_name >= elements_name_mapper.size()) {
+    elements_name_mapper.resize(element_name + 1, elements_priority.end());
   }
 
-  if (element.name >= elements_name_mapper.size()) {
-    elements_name_mapper.resize(element.name+1, elements_priority.end());
-  }
-
-  elements_name_mapper[element.name] = element_it;
+  elements_name_mapper[element_name] = element_it;
 
   if (element_it != elements_priority.begin()) {
     update_event(std::prev(element_it));
@@ -130,40 +134,6 @@ DynamicPriorityQueue::operator std::string() const {
   return out_str;
 }
 
-void DynamicPriorityQueue::update(dpq_time_t current_time) {
-  if (last_time == current_time) {
-    return;
-  }
-  if (last_time > current_time) {
-    throw std::runtime_error("DynamicPriorityQueue can't go back in time...");
-  }
-  auto event_it = events.begin();
-
-  std::unordered_set<dpq_name_t> pending_removal;
-  std::deque<Element> pending_reinsertion;
-
-  while( (event_it != events.end()) && (event_it->first < current_time) ) {
-    auto element_it = elements_name_mapper.at(event_it->second);
-    trigger_event(element_it, current_time, pending_removal);
-    ++event_it;
-  }
-
-  for (dpq_name_t element_name : pending_removal) {
-    try {
-      pending_reinsertion.push_back(remove(element_name));
-    }
-    catch(const std::runtime_error& e) { }
-  }
-
-  last_time = current_time;
-
-  for (const Element& element : pending_reinsertion) {
-    element.update(last_time);
-    add(element);
-  }
-//  check_order();
-}
-
 void DynamicPriorityQueue::check_order() {
   double last_priority = -100;
   for (auto element : elements_priority) {
@@ -176,38 +146,66 @@ void DynamicPriorityQueue::check_order() {
   }
 }
 
-void DynamicPriorityQueue::trigger_event(elements_map::iterator& element_it,
-    dpq_time_t current_time, std::unordered_set<dpq_name_t>& pending_removal) {
-  pending_removal.insert(element_it->first.name);
-//  if (!return_pair.second) {
-//    return;
-//  }
+void DynamicPriorityQueue::update(dpq_time_t current_time) {
+  if (last_time == current_time) {
+    return;
+  }
+  if (last_time > current_time) {
+    throw std::runtime_error("DynamicPriorityQueue can't go back in time...");
+  }
+
+  auto event_it = events.begin();
+  if (event_it->first >= current_time) {
+    return;
+  }
+
+  std::forward_list<Element> pending_reinsertion;
+
+  elements_map::iterator element_it;
+  while( (event_it != events.end()) && (event_it->first < current_time) ) {
+    trigger_event(event_it->second, current_time, pending_reinsertion);
+    event_it = events.begin();
+  }
+
+  last_time = current_time;
+
+  while(!pending_reinsertion.empty()) {
+    pending_reinsertion.front().update(last_time);
+    add(std::move(pending_reinsertion.front()));
+    pending_reinsertion.pop_front();
+  }
+  #ifdef LOGIC_CHECK
+    check_order();
+  #endif
+}
+
+void DynamicPriorityQueue::trigger_event(dpq_name_t element_name,
+  dpq_time_t current_time, std::forward_list<Element>& pending_reinsertion)
+{
+  auto element_it = elements_name_mapper.at(element_name);
   auto neighbor_it = std::next(element_it);
-  if (neighbor_it == elements_priority.end()) {
-      throw std::logic_error("Event in the last element should be impossible");
-  }
-  pending_removal.insert(neighbor_it->first.name);
+  #ifdef LOGIC_CHECK
+    if (neighbor_it == elements_priority.end()) {
+        throw std::logic_error("Event in the last element should be impossible");
+    }
+  #endif
 
-  // now check if there will be a switch for the left or for the right
   dpq_time_t switch_time;
-  for (auto aux_it=std::next(neighbor_it); aux_it != elements_priority.end();
-       ++aux_it) {
-    switch_time = element_it->first.get_switch_time(aux_it->first);
-    if ((switch_time > current_time) || (switch_time < last_time)) {
+  do {
+    pending_reinsertion.push_front(remove(element_it->first.name));
+    if (neighbor_it == elements_priority.begin()) {
+      pending_reinsertion.push_front(remove(neighbor_it->first.name));
       break;
     }
-    pending_removal.insert(aux_it->first.name);
-  }
+    element_it = std::prev(neighbor_it);
+    pending_reinsertion.push_front(remove(neighbor_it->first.name));
 
-  elements_map::iterator aux_it_prev;
-  for (auto aux_it = element_it; aux_it != elements_priority.begin();--aux_it){
-    aux_it_prev = std::prev(aux_it);
-    switch_time = neighbor_it->first.get_switch_time(aux_it_prev->first);
-    if ((switch_time > current_time) || (switch_time < last_time)) {
+    neighbor_it = std::next(element_it);
+    if (neighbor_it == elements_priority.end()) {
       break;
     }
-    pending_removal.insert(aux_it_prev->first.name);
-  }
+    switch_time = element_it->first.get_switch_time(neighbor_it->first);
+  } while((switch_time < current_time) && (switch_time >= last_time));
 }
 
 void DynamicPriorityQueue::update_event(elements_map::iterator iter) {
@@ -219,9 +217,11 @@ void DynamicPriorityQueue::update_event(elements_map::iterator iter) {
     dpq_time_t switch_time =iter->first.get_switch_time(std::next(iter)->first);
     if (switch_time >= 0) {
       auto return_pair = events.emplace(switch_time, iter->first.name);
-      if (!return_pair.second) {
-        throw std::logic_error("Events conflict");
-      }
+      #ifdef LOGIC_CHECK
+        if (!return_pair.second) {
+          throw std::logic_error("Events conflict");
+        }
+      #endif
       iter->second = return_pair.first;
       return;
     }

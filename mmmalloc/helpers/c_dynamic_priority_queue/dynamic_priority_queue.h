@@ -7,11 +7,10 @@
 #define DYNAMIC_PRIORITY_QUEUE_H
 
 #include <string>
+#include <forward_list>
 #include <set>
-#include <unordered_set>
 #include <map>
 #include <vector>
-#include <unordered_map>
 
 #include "element.h"
 
@@ -28,7 +27,7 @@ class DynamicPriorityQueue {
   typedef std::vector<elements_map::iterator> elements_name_map;
 
   DynamicPriorityQueue();
-  void add(const Element& element);
+  void add(const Element element);
   Element pop(dpq_time_t current_time);
   Element get_min(dpq_time_t current_time);
   elements_map::const_iterator cbegin();
@@ -46,8 +45,8 @@ class DynamicPriorityQueue {
   elements_map elements_priority; // sort elements and also link to events
   elements_name_map elements_name_mapper;
 
-  void trigger_event(elements_map::iterator& element_it,dpq_time_t current_time,
-    std::unordered_set<dpq_name_t>& pending_removal);
+  void trigger_event(dpq_name_t element_name, dpq_time_t current_time,
+                     std::forward_list<Element>& pending_reinsertion);
   void update_event(elements_map::iterator iter);
 };
 
