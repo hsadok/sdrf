@@ -16,7 +16,7 @@ class PriorityQueue {
   typedef std::vector<elements_set::iterator> elements_name_map; // name, element
 
   PriorityQueue();
-  void add(const Element& element);
+  void add(Element element);
   Element pop(dpq_time_t current_time);
   Element get_min(dpq_time_t current_time);
   elements_set::const_iterator cbegin();

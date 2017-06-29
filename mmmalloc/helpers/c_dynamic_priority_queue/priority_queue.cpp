@@ -14,17 +14,19 @@ PriorityQueue::PriorityQueue() {
   last_time = -1;
 }
 
-void PriorityQueue::add(const Element& element) {
+void PriorityQueue::add(Element element) {
   if (element_is_in(element.name)) {
     throw std::runtime_error("Element already on PriorityQueue");
   }
 
   auto element_emplace_pair = elements_priority.insert(element);
   auto element_it = element_emplace_pair.first;
-  bool insertion_success = element_emplace_pair.second;
-  if (!insertion_success) {
-    throw std::logic_error("Element exists in elements_priority");
-  }
+  #ifdef LOGIC_CHECK
+    bool insertion_success = element_emplace_pair.second;
+    if (!insertion_success) {
+      throw std::logic_error("Element exists in elements_priority");
+    }
+  #endif
 
   if (element.name >= elements_name_mapper.size()) {
     elements_name_mapper.resize(element.name+1, elements_priority.end());
@@ -116,6 +118,6 @@ void PriorityQueue::update(dpq_time_t current_time) {
 
   for (auto element : old_elements_priority){
     element.update(current_time);
-    add(element);
+    add(std::move(element));
   }
 }
