@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-sudo apt-get update
-sudo apt-get install -y libfreetype6-dev python-dev python-pip python-tk htop tmux
-
-sudo pip install virtualenv
-sudo pip install virtualenvwrapper
+echo "Type the root password"
+su root -c "\
+apt-get update && \
+apt-get install -y git libfreetype6-dev python-dev python-pip python-tk htop tmux vim && \
+\
+pip install virtualenv && \
+pip install virtualenvwrapper"
 
 export WORKON_HOME=~/Envs
 source /usr/local/bin/virtualenvwrapper.sh
