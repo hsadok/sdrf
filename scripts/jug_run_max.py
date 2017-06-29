@@ -10,7 +10,7 @@ from tqdm import tqdm
 def main(command):
     call(['tmux', 'new', '-s', 'credibility allocation', '-d'])
 
-    for _ in tqdm(xrange(cpu_count()/2 - 1), desc='Launching processes'):
+    for _ in tqdm(xrange(cpu_count() - 1), desc='Launching processes'):
         call(['tmux', 'new-window', command])
         time.sleep(10)
     # ' jug execute code/scripts/multicore_task.py data/filtered_tasks.csv'
