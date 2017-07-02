@@ -1,5 +1,4 @@
 sortedcontainers
-jug
 psutil
 tqdm
 matplotlib2tikz

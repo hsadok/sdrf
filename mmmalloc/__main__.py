@@ -102,8 +102,6 @@ def simulate_allocation(*args, **kwargs):
                    'age of 2 resources per hour and this option is 1.1, we giv'
                    'e this user 2.2 resources as their own. When more than one'
                    ' value is provided, a simulation is run for each.')
-@click.option('--jug', is_flag=True,
-              help='Use this option to run multiple processes using jug.')
 @click.option('--same_share', is_flag=True,
               help='This makes the resource option be used only for the amount'
                    ' of resources in the system instead of for each user. In t'
@@ -117,7 +115,7 @@ def simulate_allocation(*args, **kwargs):
               help='This makes DRF act as wDRF using weights proportional to u'
                    'sers resources.')
 def simulate_task_allocation(tasks_file, saving_path, allocator, config, delta,
-                             resource, jug, same_share, reserved, weights):
+                             resource, same_share, reserved, weights):
     if (not config) and (not resource):
         print('Must provide a config file or at least one resource percentage')
         sys.exit(1)
@@ -145,11 +143,6 @@ def simulate_task_allocation(tasks_file, saving_path, allocator, config, delta,
         from mmmalloc.simulators.simulate_task_allocation import mmm_drf as sim
         arg_iterator = product([tasks_file], [saving_path], resource, delta,
                                [same_share], [reserved])
-
-    if jug:
-        from jug import TaskGenerator
-        sim = TaskGenerator(sim)
-
     for arg in arg_iterator:
         sim(*arg)
 
