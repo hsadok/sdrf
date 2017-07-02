@@ -4,34 +4,41 @@ from os import path
 import csv
 
 from mmmalloc.allocators.arrival.wdrf import WDRF
-from mmmalloc.allocators.arrival.mmm_drf import MMMDRF
+from mmmalloc.allocators.arrival.mmm_drf import MMMDRF, Reserved3MDRF
 from mmmalloc.helpers.file_name import FileName
 from mmmalloc.tasks import tasks_generator, save_from_deque, tasks_file_header
 from mmmalloc.tasks.system_utilization import SystemUtilization
 
 
-# def wdrf(system_resources, resource_percentage, saving_dir, tasks_file,
-# weights):
-def wdrf(tasks_file, saving_dir, resource_percentage, weights=None):
+def wdrf(tasks_file, saving_dir, resource_percentage, use_weights=False):
     system_utilization = SystemUtilization(tasks_file)
+    saving_file = FileName('task_sim', 'wdrf', resource_percentage).name
 
-    if weights is None:
-        weights = [1] * system_utilization.num_users
+    if use_weights:
+        users_weights_dict = {}
+        for user in system_utilization.users_cpu_mean.keys():
+            users_weights_dict[user] = [
+                system_utilization.users_cpu_mean[user] /
+                system_utilization.cpu_mean,
+                system_utilization.users_memory_mean[user] /
+                system_utilization.memory_mean
+            ]
+        dot_split = saving_file.split('.')
+        saving_file = '.'.join(dot_split[0:-1]) + '-weighted.' + dot_split[-1]
+    else:
+        users_weights_dict = None
 
     system_resources = [system_utilization.cpu_mean * resource_percentage,
                         system_utilization.memory_mean * resource_percentage]
-    allocator = WDRF(system_resources, weights)
+    allocator = WDRF(system_resources, system_utilization.num_users,
+                     users_weights_dict)
 
-    saving_file = FileName('task_sim', 'wdrf', resource_percentage)
-    saving_file = path.join(saving_dir, saving_file.name)
-
+    saving_file = path.join(saving_dir, saving_file)
     simulate_task_allocation(allocator, tasks_file, saving_file)
 
 
-# def mmm_drf(system_resources, users_resources, resource_percentage,
-# saving_dir, tasks_file):
 def mmm_drf(tasks_file, saving_dir, resource_percentage, delta,
-            same_share=False):
+            same_share=False, reserved=False):
     print 'resource percentage: ', resource_percentage
     print 'delta: ', delta
     system_utilization = SystemUtilization(tasks_file)
@@ -44,11 +51,8 @@ def mmm_drf(tasks_file, saving_dir, resource_percentage, delta,
     if same_share:
         dot_split = saving_file.split('.')
         saving_file ='.'.join(dot_split[0:-1]) + '-same_share.' + dot_split[-1]
-        resource_share = resource_percentage / system_utilization.num_users
-        user_cpu = system_utilization.cpu_mean * resource_share
-        user_memory = system_utilization.memory_mean * resource_share
         for user in system_utilization.users_cpu_mean.keys():
-            users_resources_dict[user] = [user_cpu, user_memory]
+            users_resources_dict[user] = [0.0, 0.0]
     else:
         for user in system_utilization.users_cpu_mean.keys():
             users_resources_dict[user] = [
@@ -61,13 +65,19 @@ def mmm_drf(tasks_file, saving_dir, resource_percentage, delta,
         row = csv_reader.next()
         start_time = int(row[0])
 
-    allocator = MMMDRF(system_resources, users_resources_dict, delta,
-                       start_time)
+    if reserved:
+        dot_split = saving_file.split('.')
+        saving_file = '.'.join(dot_split[0:-1]) + '-reserved.' + dot_split[-1]
+        allocator = Reserved3MDRF(system_resources, users_resources_dict,
+                                  delta, start_time)
+    else:
+        allocator = MMMDRF(system_resources, users_resources_dict, delta,
+                           start_time)
 
     saving_file = path.join(saving_dir, saving_file)
     simulate_task_allocation(allocator, tasks_file, saving_file)
 
-    allocator.print_stats('end -- resource_percentage: %f' % resource_percentage)
+    allocator.print_stats('end - resource_percentage:%f' % resource_percentage)
 
 
 def simulate_task_allocation(allocator, tasks_file, saving_file):

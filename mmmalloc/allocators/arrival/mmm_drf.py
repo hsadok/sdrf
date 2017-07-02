@@ -5,7 +5,8 @@ from math import log
 from mmmalloc.allocators.arrival import Arrival, Task
 from mmmalloc.helpers.priority_queue import PriorityQueue
 
-from mmmalloc.helpers.dynamic_priority_queue import DynamicPriorityQueue, Element
+from mmmalloc.helpers.dynamic_priority_queue import DynamicPriorityQueue, \
+    Element
 
 
 # Using those indexes make stuff less generic, but generality was kinda
@@ -21,7 +22,7 @@ memory_index = 1
 # there must be a separate credibility for each resource and user
 class MMMDRF(Arrival):
     def __init__(self, capacities, users_resources_dict, delta, start_time,
-                 initial_credibilities=None , keep_history=False):
+                 initial_credibilities=None, keep_history=False):
         """
         :param capacities: array with capacities for each resource
         :param users_resources_dict: dict with users resources user:[resources]
@@ -42,8 +43,6 @@ class MMMDRF(Arrival):
             self.tau = 0
         else:
             self.tau = -1.0/log(delta)
-
-        self._user_resources_queue = PriorityQueue(np.zeros(self.num_users))
 
         if initial_credibilities is None:
             credibilities = np.zeros((self.num_users, self.num_resources))
@@ -66,16 +65,7 @@ class MMMDRF(Arrival):
 
         self.user_credibilities_queue = QueueProxy(self)
 
-    def _insert_user_resources_heap(self, user):
-        # same as wDRF when user_resources/capacities are used as the weight
-        res_left = np.max(self.allocations[user]/self._user_resources[user])
-
-        # don't bother adding when users are using more than they have (their
-        # share is >= 1)
-        if res_left < 1:
-            self._user_resources_queue.add(user, res_left)
-
-    def _insert_user_cred_heap(self, user):
+    def _insert_user(self, user):
         cpu_relative_allocation = self.allocations[user][cpu_index] - \
                                   self._user_resources[user][cpu_index]
         memory_relative_allocation = self.allocations[user][memory_index] - \
@@ -83,25 +73,8 @@ class MMMDRF(Arrival):
         self.user_credibilities_queue.add(user, cpu_relative_allocation,
                                           memory_relative_allocation)
 
-    def _insert_user(self, user):
-        self._insert_user_resources_heap(user)
-        self._insert_user_cred_heap(user)
-
     def pick_task(self):
-        def user_fulfills_request(task):
-            user_alloc = self.allocations[task.user]
-            return np.all((user_alloc + task.demands)
-                          <= self._user_resources[task.user])
-
-        def pick_from_resources():
-            return self._pick_from_queue(self._user_resources_queue,
-                                         user_fulfills_request)
-
-        def pick_from_cred():
-            return self._pick_from_queue(self.user_credibilities_queue)
-
-        picked_task = pick_from_resources() or pick_from_cred()
-        return picked_task
+        return self._pick_from_queue(self.user_credibilities_queue)
 
     def finish_task(self, task):
         # When we reinsert the user there are basically 2 possibilities: The
@@ -119,6 +92,50 @@ class MMMDRF(Arrival):
         if extra_info is not None:
             info_dict['extra_info'] = extra_info
         QueueProxy.print_stats('time_stats.txt', info_dict)
+
+
+class Reserved3MDRF(MMMDRF):
+    def __init__(self, capacities, users_resources_dict, delta, start_time,
+                 initial_credibilities=None, keep_history=False):
+        """
+        :param capacities: array with capacities for each resource
+        :param users_resources_dict: dict with users resources user:[resources]
+        """
+        super(Reserved3MDRF, self).__init__(capacities, users_resources_dict,
+                                            delta, start_time,
+                                            initial_credibilities,
+                                            keep_history)
+
+        self._user_resources_queue = PriorityQueue(np.zeros(self.num_users))
+
+    def _insert_user_resources_heap(self, user):
+        # same as wDRF when user_resources/capacities are used as the weight
+        res_left = np.max(self.allocations[user] / self._user_resources[user])
+
+        # don't bother adding when users are using more than they have (their
+        # share is >= 1)
+        if res_left < 1:
+            self._user_resources_queue.add(user, res_left)
+
+    def _insert_user(self, user):
+        self._insert_user_resources_heap(user)
+        super(Reserved3MDRF, self)._insert_user(user)
+
+    def pick_task(self):
+        def user_fulfills_request(task):
+            user_alloc = self.allocations[task.user]
+            return np.all((user_alloc + task.demands)
+                          <= self._user_resources[task.user])
+
+        picked_task = self._pick_from_queue(self._user_resources_queue,
+                                            user_fulfills_request)
+        if self._system_full:
+            return None
+
+        if picked_task is None:
+            picked_task = super(Reserved3MDRF, self).pick_task()
+
+        return picked_task
 
 
 # This class has 2 main purposes, to make sure the credibility remains up to

@@ -60,6 +60,8 @@ class Arrival(object):
         self.current_time = 0.0
         self.finished_tasks = deque()
 
+        self._system_full = False
+
         if keep_history:
             self.allocation_history = []
         else:
@@ -129,7 +131,7 @@ class Arrival(object):
         remove the user from the queue, if the constraints somehow change (i.e.
         user tasks finished) the user must be reinserted externally.
         """
-        picked_task = None
+        self._system_full = False
         available_resource = self._capacities - self.consumed_resources
 
         # for some reason using np.all here was much slower...
@@ -155,18 +157,19 @@ class Arrival(object):
             else:
                 pass_constraints = constraints(task)
 
-            if pass_constraints and system_fulfills_request(task.demands):
+            if not pass_constraints:
+                queue.remove(user)
+            elif system_fulfills_request(task.demands):
                 picked_task = self.users_queues[user].popleft()
                 # no need to remove the user from the queue here, it will be
                 # removed just after when we update its usage
-                break
-
-            if not pass_constraints:
-                queue.remove(user)
+                return picked_task
             else:
-                break  # the user with best priority cannot be fulfilled, stop
+                # the user with best priority cannot be fulfilled, stop
+                self._system_full = True
+                return None
 
-        return picked_task
+        return None
 
     def print_stats(self, extra_info=None):
         pass
