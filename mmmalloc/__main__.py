@@ -1,7 +1,7 @@
+# -*- coding: utf-8 -*-
 import click
 import json
 import sys
-import os
 from itertools import product
 import ConfigParser as configparser
 
@@ -13,7 +13,7 @@ def cli():
 
 @cli.command(help='Separate cpu & memory requests for each user.')
 @click.argument('dataset_dir', type=click.Path(exists=True, file_okay=False,
-                                                readable=True))
+                                               readable=True))
 @click.argument('saving_dir', type=click.Path(exists=True, file_okay=False,
                                               writable=True))
 def aggregate_user_events(*args, **kwargs):
@@ -23,7 +23,7 @@ def aggregate_user_events(*args, **kwargs):
 
 @cli.command(help='Filter problematic tasks.')
 @click.argument('dataset_dir', type=click.Path(exists=True, file_okay=False,
-                                                readable=True))
+                                               readable=True))
 @click.argument('saving_file', type=click.Path(file_okay=True, writable=True,
                                                dir_okay=False))
 def filter_tasks(*args, **kwargs):
@@ -31,15 +31,19 @@ def filter_tasks(*args, **kwargs):
     filter_tasks(*args, **kwargs)
 
 
-@cli.command(help='System utilization with filtered tasks.')
+@cli.command(help='Plot system utilization with filtered tasks.')
 @click.argument('tasks_file', type=click.Path(exists=True, file_okay=True,
-                                              dir_okay=False, readable=True))
-@click.argument('saving_file', type=click.Path(file_okay=True, writable=True,
-                                               dir_okay=False))
-def system_utilization(tasks_file, saving_file):
+                                              dir_okay=False, readable=True),
+                nargs=-1)
+def system_utilization(tasks_file):
     from mmmalloc.tasks.system_utilization import SystemUtilization
-    system_utilization = SystemUtilization(tasks_file)
-    system_utilization.plot(saving_file)
+    for f in tasks_file:
+        if '.' in f:
+            dot_split = f.split('.')
+            saving_file = '.'.join(dot_split[0:-1]) + '.pdf'
+        else:
+            saving_file = f + '.pdf'
+        SystemUtilization(f).plot(saving_file)
 
 
 @cli.command(help='Aggregate requests in the same timestamp.')
@@ -103,10 +107,17 @@ def simulate_allocation(*args, **kwargs):
 @click.option('--same_share', is_flag=True,
               help='This makes the resource option be used only for the amount'
                    ' of resources in the system instead of for each user. In t'
-                   'his mode all users get the same share. This only makes sen'
-                   'se for 3MDRF and is useful to compare it against WDRF')
+                   'his mode all users get the same share (0). This only make'
+                   's sense for 3MDRF.')
+@click.option('--reserved', is_flag=True,
+              help='Enables the 2 stages queue for 3MDRF. First stage uses a D'
+                   'RF queue and tries to enforce reserved resources for each'
+                   ' user. The second stage is a regular 3M queue.')
+@click.option('--weights', '-w', is_flag=True,
+              help='This makes DRF act as wDRF using weights proportional to u'
+                   'sers resources.')
 def simulate_task_allocation(tasks_file, saving_path, allocator, config, delta,
-                             resource, jug, same_share):
+                             resource, jug, same_share, reserved, weights):
     if (not config) and (not resource):
         print('Must provide a config file or at least one resource percentage')
         sys.exit(1)
@@ -128,39 +139,36 @@ def simulate_task_allocation(tasks_file, saving_path, allocator, config, delta,
     saving_path = saving_path or '.'
 
     if allocator == 'wdrf':
-        from mmmalloc.simulators.simulate_task_allocation import wdrf as simulate
-        arg_iterator = product([tasks_file], [saving_path], resource)
+        from mmmalloc.simulators.simulate_task_allocation import wdrf as sim
+        arg_iterator = product([tasks_file], [saving_path], resource,[weights])
     else:  # 3m-drf
-        from mmmalloc.simulators.simulate_task_allocation import mmm_drf as simulate
+        from mmmalloc.simulators.simulate_task_allocation import mmm_drf as sim
         arg_iterator = product([tasks_file], [saving_path], resource, delta,
-                               [same_share])
+                               [same_share], [reserved])
 
     if jug:
         from jug import TaskGenerator
-        simulate = TaskGenerator(simulate)
+        sim = TaskGenerator(sim)
 
     for arg in arg_iterator:
-        simulate(*arg)
-
-    # map(lambda x: simulate(*x), arg_iterator)
+        sim(*arg)
 
 
 @cli.command(help='Get the summary of tasks execution from a tasks file.')
 @click.argument('tasks_file', type=click.Path(exists=True, file_okay=True,
-                                              dir_okay=False, readable=True))
-@click.argument('saving_path', type=click.Path(file_okay=False, dir_okay=True,
-                                               writable=True), required=False)
-def jobs_summary(tasks_file, saving_path):
+                                              dir_okay=False, readable=True),
+                nargs=-1)
+def jobs_summary(tasks_file):
     from mmmalloc.tasks.jobs_summary import jobs_summary as run_jobs_summary
-    saving_path = saving_path or '.'
-    if '.' in tasks_file:
-        dot_split = tasks_file.split('.')
-        saving_file = '.'.join(dot_split[0:-1]) + '-jobs.' + dot_split[-1]
-    else:
-        saving_file = tasks_file + '-jobs'
+    for f in tasks_file:
+        if '.' in f:
+            dot_split = f.split('.')
+            saving_file = '.'.join(dot_split[0:-1]) + '-jobs.' + dot_split[-1]
+        else:
+            saving_file = f + '-jobs'
 
-    saving_file = os.path.join(saving_path, saving_file)
-    run_jobs_summary(tasks_file, saving_file)
+        # saving_file = os.path.join(saving_path, saving_file)
+        run_jobs_summary(f, saving_file)
 
 
 @cli.command(help='Simulate allocation using multiple cores.')
