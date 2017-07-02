@@ -40,7 +40,9 @@ bool Element::operator<(const Element& rhs) const {
           rhs.get_dominant_resource(update_time);
   double my_growth = get_priority_derivative(my_dominant_resource, 0);
   double rhs_growth = get_priority_derivative(rhs_dominant_resource, 0);
-  if (my_growth != rhs_growth) {
+  if (std::isfinite(my_growth) && std::isfinite(rhs_growth) &&
+      my_growth != rhs_growth)
+  {
     return my_growth < rhs_growth;
   }
 
