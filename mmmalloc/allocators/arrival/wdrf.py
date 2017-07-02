@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-from mmmalloc.allocators.arrival import Arrival
+from mmmalloc.allocators.arrival import Arrival, Task
 from mmmalloc.helpers.priority_queue import PriorityQueue
 
 
@@ -13,12 +13,19 @@ from mmmalloc.helpers.priority_queue import PriorityQueue
 # proportionally
 
 class WDRF(Arrival):
-    def __init__(self, capacities, weights, keep_history=False):
+    def __init__(self, capacities, num_users, users_weights_dict=None,
+                 keep_history=False):
         """
         :param capacities: array with system capacities for each resource
         :param weights: each user's resources weight
         """
-        super(WDRF, self).__init__(capacities, len(weights), keep_history)
+        super(WDRF, self).__init__(capacities, num_users, keep_history)
+
+        weights = [[1, 1]] * num_users
+        if users_weights_dict is not None:
+            for user, weight in users_weights_dict.iteritems():
+                weights[Task._user_index[user]] = weight  # HACK!
+
         self.weights = np.array(weights)
         self.dominant_share_queue = PriorityQueue()
 
