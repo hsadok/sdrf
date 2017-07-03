@@ -20,6 +20,7 @@
 
 DynamicPriorityQueue::DynamicPriorityQueue() {
   #ifdef LOGIC_CHECK
+    #pragma message "Logic check is activated, this will make the code slower."
     std::cout << "LOGIC CHECK" << std::endl;
   #endif
   last_time = -1;
@@ -125,7 +126,9 @@ bool DynamicPriorityQueue::element_is_in(const dpq_name_t& name) const {
 DynamicPriorityQueue::operator std::string() const {
   std::string out_str = "[ ";
   for (auto element : elements_priority) {
-    out_str += std::string(element.first) + ", ";
+    Element cpy(element.first);
+    cpy.update(last_time);
+    out_str += std::string(cpy) + ", ";
   }
   if (out_str.size() == 2) {
     out_str = "[]";
@@ -138,11 +141,11 @@ DynamicPriorityQueue::operator std::string() const {
 }
 
 void DynamicPriorityQueue::check_order() {
-  double last_priority = -100;
+  long double last_priority = -100;
   for (auto element : elements_priority) {
     Element cpy(element.first);
     cpy.update(last_time);
-    if (last_priority > cpy.get_priority()) {
+    if ( (last_priority - cpy.get_priority()) > 1e-15 ) {
       throw std::logic_error("DynamicPriorityQueue not properly ordered");
     }
     last_priority = cpy.get_priority();
