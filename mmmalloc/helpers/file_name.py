@@ -21,7 +21,7 @@ class FileName(object):
                            'delta': float(delta),
                            'resource_percentage': float(resource_percentage)}
 
-    def task_sim(self, allocator, resource_percentage, delta=0):
+    def task_sim(self, allocator, resource_percentage, delta=0, *args):
         if self.name is None:
             self.name = 'task_sim-%s-%s-%s.csv' % (allocator,
                                                    str(resource_percentage),

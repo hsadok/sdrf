@@ -15,6 +15,7 @@ from mmmalloc.helpers.dynamic_priority_queue import DynamicPriorityQueue, \
 cpu_index = 0
 memory_index = 1
 
+time_scale_multiplier = 1000  # using milliseconds
 
 # 3M_DRF
 # the 3M allocation must only come into action when users already reached 1/n
@@ -42,7 +43,7 @@ class MMMDRF(Arrival):
         if delta == 0:
             self.tau = 0
         else:
-            self.tau = -1.0/log(delta)
+            self.tau = -1.0 * time_scale_multiplier/log(delta)
 
         if initial_credibilities is None:
             credibilities = np.zeros((self.num_users, self.num_resources))

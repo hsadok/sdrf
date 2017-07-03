@@ -164,6 +164,23 @@ def jobs_summary(tasks_file):
         run_jobs_summary(f, saving_file)
 
 
+@cli.command(help='Calculate users credibilities over time.')
+@click.argument('tasks_file', type=click.Path(exists=True, file_okay=True,
+                                              dir_okay=False, readable=True),
+                nargs=-1)
+def credibility_from_tasks(tasks_file):
+    from mmmalloc.tasks.credibility import credibility_summary
+    for f in tasks_file:
+        if '.' in f:
+            dot_split = f.split('.')
+            saving_file = '.'.join(dot_split[0:-1]) + '-credibility.'\
+                          + dot_split[-1]
+        else:
+            saving_file = f + '-credibility'
+
+        credibility_summary(f, saving_file)
+
+
 @cli.command(help='Simulate allocation using multiple cores.')
 @click.argument('dataset_file', type=click.Path(exists=True, file_okay=True,
                                                 dir_okay=False, readable=True))
