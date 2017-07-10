@@ -4,10 +4,10 @@ from os import path
 
 
 class FileName(object):
-    def __init__(self, *args):
+    def __init__(self, *args, **kwargs):
         self.name = None
         self.attributes = None
-        getattr(self, args[0])(*args[1:])
+        getattr(self, args[0])(*args[1:], **kwargs)
 
     def alloc(self, resource_type, scheduling_period, delta,
               resource_percentage):
@@ -21,14 +21,93 @@ class FileName(object):
                            'delta': float(delta),
                            'resource_percentage': float(resource_percentage)}
 
-    def task_sim(self, allocator, resource_percentage, delta=0, *args):
+    def task_sim(self, allocator, resource_percentage, delta=0,
+                 *args, **kwargs):
+        extra_options = ['same_share', 'reserved', 'weighted', 'jobs', 'wait']
+        extra_options_dict = {k: False for k in extra_options}
+
+        for key in kwargs:
+            if key not in extra_options:
+                raise AttributeError(key)
+
+        extra_options_dict.update(kwargs)
+
+        for arg in args:
+            if arg not in extra_options:
+                raise AttributeError(arg)
+            extra_options_dict[arg] = True
+
         if self.name is None:
-            self.name = 'task_sim-%s-%s-%s.csv' % (allocator,
-                                                   str(resource_percentage),
-                                                   str(delta))
+            self.name = 'task_sim-%s-%s-%s' % (allocator,
+                                               str(resource_percentage),
+                                               str(delta))
+            for opt in extra_options:
+                if extra_options_dict[opt]:
+                    self.name += '-' + opt
+
+            self.name += '.csv'
+
         self.attributes = {'allocator': allocator,
                            'resource_percentage': float(resource_percentage),
                            'delta': float(delta)}
+        self.attributes.update(extra_options_dict)
+
+    def wait_by_class(self, allocator, resource_percentage, *args,
+                      **kwargs):
+        extra_options = ['same_share', 'reserved', 'weighted']
+        extra_options_dict = {k: False for k in extra_options}
+
+        for key in kwargs:
+            if key not in extra_options:
+                raise AttributeError(key)
+
+        extra_options_dict.update(kwargs)
+
+        for arg in args:
+            if arg not in extra_options:
+                raise AttributeError(arg)
+            extra_options_dict[arg] = True
+
+        if self.name is None:
+            self.name = 'wait_by_class-%s-%s' % (allocator,
+                                                 str(resource_percentage))
+            for opt in extra_options:
+                if extra_options_dict[opt]:
+                    self.name += '-' + opt
+            self.name += '.json'
+
+        self.attributes = {'allocator': allocator,
+                           'resource_percentage': float(resource_percentage)}
+        self.attributes.update(extra_options_dict)
+
+    def completion_ratio(self, allocator, resource_percentage, delta=0,
+                         *args, **kwargs):
+        extra_options = ['same_share', 'reserved', 'weighted']
+        extra_options_dict = {k: False for k in extra_options}
+
+        for key in kwargs.copy():
+            if key not in extra_options:
+                del kwargs[key]
+
+        extra_options_dict.update(kwargs)
+
+        for arg in args:
+            if arg not in extra_options:
+                raise AttributeError(arg)
+            extra_options_dict[arg] = True
+
+        if self.name is None:
+            self.name = 'completion_ratio-%s-%s-%s' % (
+                allocator, str(resource_percentage), str(delta))
+            for opt in extra_options:
+                if extra_options_dict[opt]:
+                    self.name += '-' + opt
+            self.name += '.json'
+
+        self.attributes = {'allocator': allocator,
+                           'resource_percentage': float(resource_percentage),
+                           'delta': float(delta)}
+        self.attributes.update(extra_options_dict)
 
     def credibility(self, resource_type, scheduling_period, delta,
                     resource_percentage):

@@ -12,7 +12,8 @@ from mmmalloc.tasks.system_utilization import SystemUtilization
 
 def wdrf(tasks_file, saving_dir, resource_percentage, use_weights=False):
     system_utilization = SystemUtilization(tasks_file)
-    saving_file = FileName('task_sim', 'wdrf', resource_percentage).name
+    saving_file = FileName('task_sim', 'wdrf', resource_percentage,
+                           weighted=use_weights).name
 
     if use_weights:
         users_weights_dict = {}
@@ -23,8 +24,6 @@ def wdrf(tasks_file, saving_dir, resource_percentage, use_weights=False):
                 system_utilization.users_memory_mean[user] /
                 system_utilization.memory_mean
             ]
-        dot_split = saving_file.split('.')
-        saving_file = '.'.join(dot_split[0:-1]) + '-weighted.' + dot_split[-1]
     else:
         users_weights_dict = None
 
@@ -46,11 +45,10 @@ def mmm_drf(tasks_file, saving_dir, resource_percentage, delta,
                         system_utilization.memory_mean * resource_percentage]
 
     users_resources_dict = {}
-    saving_file = FileName('task_sim', '3mdrf', resource_percentage,delta).name
+    saving_file = FileName('task_sim', '3mdrf', resource_percentage, delta,
+                           same_share=same_share, reserved=reserved).name
 
     if same_share:
-        dot_split = saving_file.split('.')
-        saving_file ='.'.join(dot_split[0:-1]) + '-same_share.' + dot_split[-1]
         for user in system_utilization.users_cpu_mean.keys():
             users_resources_dict[user] = [0.0, 0.0]
     else:
@@ -66,8 +64,6 @@ def mmm_drf(tasks_file, saving_dir, resource_percentage, delta,
         start_time = int(row[0])
 
     if reserved:
-        dot_split = saving_file.split('.')
-        saving_file = '.'.join(dot_split[0:-1]) + '-reserved.' + dot_split[-1]
         allocator = Reserved3MDRF(system_resources, users_resources_dict,
                                   delta, start_time)
     else:
