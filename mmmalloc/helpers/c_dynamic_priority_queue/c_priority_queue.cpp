@@ -54,11 +54,27 @@ struct QueueTimes {
     stream << "  \"total\": " << total.count() << std::endl;
     stream << "}" << std::endl;
   }
+  void print_count_to_stream(char* info, std::ostream& stream, int insert_count, int update_count, int events_count) {
+    stream << "{" << std::endl;
+    stream << "  \"info\": " << info << "," << std::endl;
+    stream << "  \"insert_count\": " << insert_count << "," << std::endl;
+    stream << "  \"update_count\": " << update_count << "," << std::endl;
+    stream << "  \"events_count\": " << events_count << std::endl;
+    stream << "}" << std::endl;
+  }
   void print_stats(char* info, char* file_name) {
     std::ofstream out_file;
     out_file.open(file_name, std::ios_base::app);
     print_stats_to_stream(info, out_file);
     print_stats_to_stream(info, std::cout);
+  }
+  void print_stats(char* info, char* file_name, int insert_count, int update_count, int events_count) {
+    std::ofstream out_file;
+    out_file.open(file_name, std::ios_base::app);
+    print_stats_to_stream(info, out_file);
+    print_count_to_stream(info, out_file, insert_count, update_count, events_count);
+    print_stats_to_stream(info, std::cout);
+    print_count_to_stream(info, std::cout, insert_count, update_count, events_count);
   }
 };
 
@@ -316,7 +332,10 @@ extern "C" {
     dynamic_priority_queue_times.delete_t += std::chrono::high_resolution_clock::now() - ref_time;
   }
   void DynamicPriorityQueue_print_stats(char* info, char* file_name) {
-    dynamic_priority_queue_times.print_stats(info, file_name);
+    int insert_count = DynamicPriorityQueue::get_insert_count();
+    int update_count = DynamicPriorityQueue::get_update_count();
+    int events_count = DynamicPriorityQueue::get_events_count();
+    priority_queue_times.print_stats(info, file_name, insert_count, update_count, events_count);
   }
 
 

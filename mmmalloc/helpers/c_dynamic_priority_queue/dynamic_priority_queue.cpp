@@ -16,7 +16,11 @@
 #include "element.h"
 #include "dynamic_priority_queue.h"
 
-// #define LOGIC_CHECK
+#define LOGIC_CHECK
+
+int DynamicPriorityQueue::insert_count = 0;
+int DynamicPriorityQueue::update_count = 0;
+int DynamicPriorityQueue::events_count = 0;
 
 DynamicPriorityQueue::DynamicPriorityQueue() {
   #ifdef LOGIC_CHECK
@@ -27,6 +31,7 @@ DynamicPriorityQueue::DynamicPriorityQueue() {
 }
 
 void DynamicPriorityQueue::add(Element element) {
+  DynamicPriorityQueue::insert_count++;
   dpq_name_t element_name = element.name;
   if (element_is_in(element_name)) {
     throw std::runtime_error("Element already on DynamicPriorityQueue");
@@ -153,6 +158,7 @@ void DynamicPriorityQueue::check_order() {
 }
 
 void DynamicPriorityQueue::update(dpq_time_t current_time) {
+  DynamicPriorityQueue::update_count++;
   if (last_time == current_time) {
     return;
   }
@@ -168,6 +174,7 @@ void DynamicPriorityQueue::update(dpq_time_t current_time) {
   std::forward_list<Element> pending_reinsertion;
   elements_map::iterator element_it, neighbor_it;
   while( (event_it != events.end()) && (event_it->first < current_time) ) {
+    DynamicPriorityQueue::events_count++;
     element_it = elements_name_mapper.at(event_it->second);
     neighbor_it = std::next(element_it);
     pending_reinsertion.push_front(remove(event_it->second));
@@ -186,6 +193,17 @@ void DynamicPriorityQueue::update(dpq_time_t current_time) {
     check_order();
   #endif
 }
+
+int DynamicPriorityQueue::get_insert_count(){
+  return DynamicPriorityQueue::insert_count;
+}
+int DynamicPriorityQueue::get_update_count(){
+  return DynamicPriorityQueue::update_count;
+}
+int DynamicPriorityQueue::get_events_count(){
+  return DynamicPriorityQueue::events_count;
+}
+
 
 void DynamicPriorityQueue::update_event(elements_map::iterator iter) {
   if (iter->second != events.end()) {

@@ -39,11 +39,19 @@ class DynamicPriorityQueue {
   void update(dpq_time_t current_time);
   void check_order();
 
+  static int get_insert_count();
+  static int get_update_count();
+  static int get_events_count();
+
  private:
   dpq_time_t last_time;
   events_set events;
   elements_map elements_priority; // sort elements and also link to events
   elements_name_map elements_name_mapper;
+
+  static int insert_count;
+  static int update_count;
+  static int events_count;
 
   void update_event(elements_map::iterator iter);
 };
