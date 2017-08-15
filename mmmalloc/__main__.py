@@ -5,6 +5,8 @@ import sys
 from itertools import product
 import ConfigParser as configparser
 
+from mmmalloc.helpers.file_name import FileName
+
 
 @click.group()
 def cli():
@@ -154,21 +156,26 @@ def simulate_task_allocation(tasks_file, saving_path, allocator, config, delta,
 def jobs_summary(tasks_file):
     from mmmalloc.tasks.jobs_summary import jobs_summary as run_jobs_summary
     for f in tasks_file:
-        if '.' in f:
-            dot_split = f.split('.')
-            saving_file = '.'.join(dot_split[0:-1]) + '-jobs.' + dot_split[-1]
-        else:
-            saving_file = f + '-jobs'
-
-        # saving_file = os.path.join(saving_path, saving_file)
+        file_att = FileName(f)
+        allocator = file_att.attributes.pop('allocator')
+        resource_percentage = file_att.attributes.pop('resource_percentage')
+        delta = file_att.attributes.pop('delta')
+        file_att.attributes['jobs'] = True
+        saving_file = FileName('task_sim', allocator, resource_percentage,
+                               delta, **file_att.attributes)
+        saving_file = saving_file.name
         run_jobs_summary(f, saving_file)
 
 
 @cli.command(help='Calculate users credibilities over time.')
-@click.argument('tasks_file', type=click.Path(exists=True, file_okay=True,
-                                              dir_okay=False, readable=True),
+@click.argument('tasks_file',
+                type=click.Path(exists=True, file_okay=True, dir_okay=False,
+                                readable=True),
                 nargs=-1)
-def credibility_from_tasks(tasks_file):
+@click.argument('original_dataset',
+                type=click.Path(exists=True, file_okay=True,
+                                dir_okay=False, readable=True))
+def credibility_from_tasks(tasks_file, original_dataset):
     from mmmalloc.tasks.credibility import credibility_summary
     for f in tasks_file:
         if '.' in f:
@@ -178,7 +185,7 @@ def credibility_from_tasks(tasks_file):
         else:
             saving_file = f + '-credibility'
 
-        credibility_summary(f, saving_file)
+        credibility_summary(f, original_dataset, saving_file)
 
 
 @cli.command(help='Simulate allocation using multiple cores.')
