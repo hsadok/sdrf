@@ -5,8 +5,6 @@ import pandas as pd
 import numpy as np
 import json
 from os.path import join, dirname, abspath, exists
-import matplotlib; matplotlib.use('PDF')
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from mmmalloc.helpers.schema import SchemaIndex
@@ -75,6 +73,8 @@ class SystemUtilization(object):
         raise AttributeError(name)
 
     def plot(self, saving_file):
+        import matplotlib; matplotlib.use('PDF')
+        import matplotlib.pyplot as plt
         if self._data_df is None:
             self.calculate()
         df = self._data_df.resample('1T').mean()

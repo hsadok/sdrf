@@ -16,7 +16,7 @@
 #include "element.h"
 #include "dynamic_priority_queue.h"
 
-#define LOGIC_CHECK
+//#define LOGIC_CHECK
 
 int DynamicPriorityQueue::insert_count = 0;
 int DynamicPriorityQueue::update_count = 0;

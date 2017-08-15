@@ -80,6 +80,35 @@ class FileName(object):
                            'resource_percentage': float(resource_percentage)}
         self.attributes.update(extra_options_dict)
 
+    def wait_by_user(self, allocator, resource_percentage, delta=0, *args,
+                     **kwargs):
+        extra_options = ['same_share', 'reserved', 'weighted']
+        extra_options_dict = {k: False for k in extra_options}
+
+        for key in kwargs.copy():
+            if key not in extra_options:
+                del kwargs[key]
+
+        extra_options_dict.update(kwargs)
+
+        for arg in args:
+            if arg not in extra_options:
+                raise AttributeError(arg)
+            extra_options_dict[arg] = True
+
+        if self.name is None:
+            self.name = 'wait_by_user-%s-%s-%s' % (
+                allocator, str(resource_percentage), str(delta))
+            for opt in extra_options:
+                if extra_options_dict[opt]:
+                    self.name += '-' + opt
+            self.name += '.json'
+
+        self.attributes = {'allocator': allocator,
+                           'resource_percentage': float(resource_percentage),
+                           'delta': float(delta)}
+        self.attributes.update(extra_options_dict)
+
     def completion_ratio(self, allocator, resource_percentage, delta=0,
                          *args, **kwargs):
         extra_options = ['same_share', 'reserved', 'weighted']
@@ -130,13 +159,14 @@ class FileName(object):
                            'num_users': int(num_users)}
 
     def __getattr__(self, name):
-        if name[-4:] != '.csv':
+        if not name.endswith('.csv') and not name.endswith('.json'):
             if name not in self.attributes:
                 raise AttributeError(name)
             return self.attributes[name]
         self.name = name
         name = path.basename(name)
-        params_lists = name[:-4].split('-')
+        name = '.'.join(name.split('.')[:-1])
+        params_lists = name.split('-')
         if params_lists[0] not in dir(FileName):
             raise AttributeError(params_lists[0])
         getattr(self, params_lists[0])(*params_lists[1:])

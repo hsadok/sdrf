@@ -179,15 +179,16 @@ class DynamicPriorityQueue(object):
 class Element(object):
     def __init__(self, name=None, update_time=None, tau=None, system_cpu=None,
                  cpu_credibility=None, cpu_relative_allocation=None,
-                 system_memory=None, memory_credibility=None,
-                 memory_relative_allocation=None, obj=None):
+                 cpu_share=None, system_memory=None, memory_credibility=None,
+                 memory_relative_allocation=None, memory_share=None, obj=None):
         if obj is None:
             self.obj = ct.c_void_p(lib.Element_new(
                 name, ct.c_double(update_time), ct.c_double(tau),
                 ct.c_double(system_cpu), ct.c_double(cpu_credibility),
-                ct.c_double(cpu_relative_allocation),
+                ct.c_double(cpu_relative_allocation), ct.c_double(cpu_share),
                 ct.c_double(system_memory), ct.c_double(memory_credibility),
-                ct.c_double(memory_relative_allocation))
+                ct.c_double(memory_relative_allocation),
+                ct.c_double(memory_share))
             )
         else:
             self.obj = obj

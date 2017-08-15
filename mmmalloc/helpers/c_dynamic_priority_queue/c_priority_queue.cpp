@@ -341,12 +341,13 @@ extern "C" {
 
   Element* Element_new(dpq_name_t name, double update_time, double tau,
                        double system_cpu, double cpu_credibility,
-                       double cpu_relative_allocation, double system_memory,
-                       double memory_credibility,
-                       double memory_relative_allocation) {
+                       double cpu_relative_allocation, double cpu_share,
+                       double system_memory, double memory_credibility,
+                       double memory_relative_allocation, double memory_share){
     return new Element(name, update_time, tau, system_cpu, cpu_credibility,
-                       cpu_relative_allocation, system_memory,
-                       memory_credibility, memory_relative_allocation);
+                       cpu_relative_allocation, cpu_share, system_memory,
+                       memory_credibility, memory_relative_allocation,
+                       memory_share);
   }
   void Element_update(Element* element, double current_time) {
     element->update(current_time);

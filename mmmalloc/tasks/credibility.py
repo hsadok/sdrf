@@ -1,21 +1,24 @@
 # coding=utf-8
 # credibility.py
 # 2017, all rights reserved
-import csv
+import threading
 from math import exp, log
 from collections import deque
 
+from tqdm import tqdm
+
 from mmmalloc.allocators.arrival.mmm_drf import time_scale_multiplier
 from mmmalloc.helpers.file_name import FileName
-from mmmalloc.tasks import tasks_generator
+from mmmalloc.tasks import tasks_generator, save_from_deque
 from mmmalloc.tasks.system_utilization import SystemUtilization
 
 
-def credibility_summary(tasks_file, saving_file):
+def credibility_summary(tasks_file, original_dataset, saving_file):
     file_att = FileName(tasks_file)
     delta = file_att.delta
     resource_percentage = file_att.resource_percentage
-    system_utilization = SystemUtilization(tasks_file)
+    same_share = file_att.same_share
+    system_utilization = SystemUtilization(original_dataset)
     user_id_map = {}
 
     print 'delta: ', delta
@@ -34,7 +37,7 @@ def credibility_summary(tasks_file, saving_file):
     num_users = len(user_id_map)
     owned_cpu = [0.0] * num_users
     owned_memory = [0.0] * num_users
-    if 'same_share' in tasks_file:
+    if same_share:
         print 'same share'
     else:
         for user in xrange(num_users):
@@ -47,53 +50,58 @@ def credibility_summary(tasks_file, saving_file):
     events = sorted(events)
 
     first_event = events.pop(0)
-    aggregated_time = deque([first_event[0]])
-    users_cpu_allocation = num_users * [0.0]
-    users_cpu_allocation[first_event[3]] = first_event[1]
-    users_memory_allocation = num_users * [0.0]
-    users_memory_allocation[first_event[3]] = first_event[2]
-    users_cpu_credibility = [deque([0.0]) for _ in xrange(num_users)]
-    users_memory_credibility = [deque([0.0]) for _ in xrange(num_users)]
+    saving_deque = deque()
+    title_row = ['time']
+    for user in xrange(num_users):
+        user_id = user_id_map[user]
+        title_row.append(user_id + '-cpu')
+        title_row.append(user_id + '-memory')
 
-    for event in events:
+    users_cpu_allocation = num_users * [0.0]
+    users_memory_allocation = num_users * [0.0]
+    prev_creds_cpu = num_users * [0.0]
+    prev_creds_memory = num_users * [0.0]
+    prev_time = first_event[0]
+
+    users_cpu_allocation[first_event[3]] = first_event[1]
+    users_memory_allocation[first_event[3]] = first_event[2]
+
+    done = threading.Event()
+    saving_thread = threading.Thread(target=save_from_deque, args=(
+        saving_deque, saving_file, title_row, done, True))
+    saving_thread.start()
+
+    print 'processing events'
+    for event in tqdm(events):
         event_time = event[0]
         cpu = event[1]
         memory = event[2]
         event_user = event[3]
-        time_delta = event_time - aggregated_time[-1]
+        time_delta = event_time - prev_time
         if time_delta != 0:
             if tau == 0:
                 alpha = 1
             else:
                 alpha = 1 - exp(-time_delta / tau)
+            instant_dict = {'time': event_time}
+            prev_time = event_time
             for user in xrange(num_users):
-                prev_cred = users_cpu_credibility[user][-1]
+                user_id = user_id_map[user]
+                prev_cred = prev_creds_cpu[user]
                 new_cred = prev_cred + alpha * (users_cpu_allocation[user] -
                                                 owned_cpu[user] - prev_cred)
-                users_cpu_credibility[user].append(new_cred)
-                prev_cred = users_memory_credibility[user][-1]
+                instant_dict[user_id + '-cpu'] = new_cred
+                prev_creds_cpu[user] = new_cred
+
+                prev_cred = prev_creds_memory[user]
                 new_cred = prev_cred + alpha * (users_memory_allocation[user] -
                                                 owned_memory[user] - prev_cred)
-                users_memory_credibility[user].append(new_cred)
-            aggregated_time.append(event_time)
+                instant_dict[user_id + '-memory'] = new_cred
+                prev_creds_memory[user] = new_cred
+            saving_deque.append(instant_dict)
 
         users_cpu_allocation[event_user] += cpu
         users_memory_allocation[event_user] += memory
 
-    print 'saving...'
-
-    with open(saving_file, 'wb') as f:
-        wr = csv.writer(f)
-        title_row = ['time']
-        for user in xrange(num_users):
-            user_id = user_id_map[user]
-            title_row.append(user_id + '-cpu')
-            title_row.append(user_id + '-memory')
-        wr.writerow(title_row)
-        while aggregated_time:
-            row = list()
-            row.append(aggregated_time.popleft())
-            for user in xrange(num_users):
-                row.append(users_cpu_credibility[user].popleft())
-                row.append(users_memory_credibility[user].popleft())
-            wr.writerow(row)
+    done.set()
+    saving_thread.join()

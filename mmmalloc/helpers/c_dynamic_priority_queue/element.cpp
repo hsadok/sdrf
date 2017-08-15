@@ -14,11 +14,12 @@
 
 Element::Element(const dpq_name_t& name, dpq_time_t update_time, double tau,
   double system_cpu, double cpu_credibility, double cpu_relative_allocation,
-  double system_memory, double memory_credibility,
-  double memory_relative_allocation)
+  double cpu_share, double system_memory, double memory_credibility,
+  double memory_relative_allocation, double memory_share)
   : name(name), update_time(update_time), tau(tau),
-    cpu(system_cpu, cpu_credibility, cpu_relative_allocation),
-    memory(system_memory, memory_credibility,memory_relative_allocation)
+    cpu(system_cpu, cpu_credibility, cpu_relative_allocation, cpu_share),
+    memory(system_memory, memory_credibility, memory_relative_allocation,
+           memory_share)
   { }
 
 bool Element::operator<(const Element& rhs) const {
@@ -63,9 +64,10 @@ void Element::update(dpq_time_t current_time) const {
     throw std::runtime_error("Can't update Element to the past");
   }
   cpu.credibility = calculate_credibility(current_time, cpu.credibility,
-                                          cpu.relative_allocation);
+                                          cpu.relative_allocation, cpu.share);
   memory.credibility = calculate_credibility(current_time, memory.credibility,
-                                             memory.relative_allocation);
+                                             memory.relative_allocation,
+                                             memory.share);
 
   update_time = current_time;
 }
@@ -200,27 +202,37 @@ Element::operator std::string() const {
 }
 
 Element::Resource::Resource(long double system_total, long double credibility,
-   long double relative_allocation)
+   long double relative_allocation, long double share)
    : system_total(system_total), credibility(credibility),
-     relative_allocation(relative_allocation) { }
+     relative_allocation(relative_allocation), share(share) { }
 
 long double Element::calculate_credibility(dpq_time_t current_time,
-    long double previous_credibility, long double relative_allocation) const {
+    long double previous_credibility, long double relative_allocation,
+    long double share) const {
   dpq_time_t delta_t = current_time - update_time;
   long double alpha = 1 - std::exp(-delta_t/tau);
-  return previous_credibility + alpha * (relative_allocation
-                                         - previous_credibility);
+  return previous_credibility + alpha * (
+    std::max<long double>(relative_allocation-share, 0) - previous_credibility
+  );
 }
 
 dpq_time_t Element::get_priority_intersection(const Element::Resource& r1,
                                               const Element::Resource& r2)const{
-  return tau * std::log(
-          0.5 * (1 + (r1.system_total * r2.credibility
-                      - r2.system_total * r1.credibility) /
-                     (r2.system_total * r1.relative_allocation
-                      - r1.system_total * r2.relative_allocation)
-                )
-  );
+//  return tau * std::log(
+//          0.5 * (1 + (r1.system_total * r2.credibility
+//                      - r2.system_total * r1.credibility) /
+//                     (r2.system_total * r1.relative_allocation
+//                      - r1.system_total * r2.relative_allocation)
+//                )
+//  );
+    long double overused_r1 = get_overused_resource(r1);
+    long double overused_r2 = get_overused_resource(r2);
+    return tau * std::log(
+      (r2.system_total*(overused_r1 - r1.credibility)
+      - r1.system_total * (overused_r2 - r2.credibility)) /
+      (r2.system_total*(overused_r1 + r1.relative_allocation)
+      - r1.system_total*(overused_r2 + r2.relative_allocation))
+    );
 }
 
 long double Element::calculate_priority(const Element::Resource& res,
@@ -228,7 +240,7 @@ long double Element::calculate_priority(const Element::Resource& res,
   long double credibility = res.credibility;
   if (time != 0) {
     credibility = calculate_credibility(time, credibility,
-                                        res.relative_allocation);
+                                        res.relative_allocation, res.share);
   }
   return (res.relative_allocation + credibility) / res.system_total;
 }
@@ -245,4 +257,8 @@ const Element::Resource& Element::get_dominant_resource(
     return memory;
   }
   return cpu;
+}
+
+long double Element::get_overused_resource(const Resource& r) const {
+  return std::max<long double>(r.relative_allocation - r.share, 0);
 }

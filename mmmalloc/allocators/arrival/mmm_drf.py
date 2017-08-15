@@ -15,7 +15,8 @@ from mmmalloc.helpers.dynamic_priority_queue import DynamicPriorityQueue, \
 cpu_index = 0
 memory_index = 1
 
-time_scale_multiplier = 1000  # using milliseconds
+time_scale_multiplier = 1e6  # using seconds
+# time_scale_multiplier = 1000  # using milliseconds
 
 
 # 3M_DRF
@@ -59,11 +60,14 @@ class MMMDRF(Arrival):
             system_mem = self._capacities[memory_index]
             cred_cpu = credibilities[user][cpu_index]
             cred_mem = credibilities[user][memory_index]
+            cpu_share = system_cpu / num_users
+            mem_share = system_mem / num_users
 
             # in the beginning all users are idle
             self.idle_users[user] = Element(user, self.current_time, self.tau,
                                             system_cpu, cred_cpu, cpu_relativ,
-                                            system_mem, cred_mem, mem_relativ)
+                                            cpu_share, system_mem, cred_mem,
+                                            mem_relativ, mem_share)
 
         self.user_credibilities_queue = QueueProxy(self)
 
@@ -94,6 +98,9 @@ class MMMDRF(Arrival):
         if extra_info is not None:
             info_dict['extra_info'] = extra_info
         QueueProxy.print_stats('time_stats.txt', info_dict)
+        print 'credibilities: '
+        for u in self.idle_users.values():
+            print 'cpu: ',  u.cpu_credibility, 'memory: ',  u.memory_credibility
 
 
 class Reserved3MDRF(MMMDRF):
