@@ -100,7 +100,7 @@ class MMMDRF(Arrival):
         QueueProxy.print_stats('time_stats.txt', info_dict)
         print 'credibilities: '
         for u in self.idle_users.values():
-            print 'cpu: ',  u.cpu_credibility, 'memory: ',  u.memory_credibility
+            print 'cpu: ',  u.cpu_credibility, 'memory: ', u.memory_credibility
 
 
 class Reserved3MDRF(MMMDRF):

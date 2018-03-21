@@ -335,7 +335,7 @@ extern "C" {
     int insert_count = DynamicPriorityQueue::get_insert_count();
     int update_count = DynamicPriorityQueue::get_update_count();
     int events_count = DynamicPriorityQueue::get_events_count();
-    priority_queue_times.print_stats(info, file_name, insert_count, update_count, events_count);
+    dynamic_priority_queue_times.print_stats(info, file_name, insert_count, update_count, events_count);
   }
 
 
