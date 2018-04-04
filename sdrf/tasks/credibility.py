@@ -7,7 +7,7 @@ from collections import deque
 
 from tqdm import tqdm
 
-from sdrf.allocators.arrival.mmm_drf import time_scale_multiplier
+from sdrf.allocators.arrival.sdrf import time_scale_multiplier
 from sdrf.helpers.file_name import FileName
 from sdrf.tasks import tasks_generator, save_from_deque
 from sdrf.tasks.system_utilization import SystemUtilization

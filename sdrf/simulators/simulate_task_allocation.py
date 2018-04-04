@@ -4,7 +4,7 @@ from os import path
 import csv
 
 from sdrf.allocators.arrival.wdrf import WDRF
-from sdrf.allocators.arrival.mmm_drf import MMMDRF, Reserved3MDRF
+from sdrf.allocators.arrival.sdrf import MMMDRF, Reserved3MDRF
 from sdrf.helpers.file_name import FileName
 from sdrf.tasks import tasks_generator, save_from_deque, tasks_file_header
 from sdrf.tasks.system_utilization import SystemUtilization
