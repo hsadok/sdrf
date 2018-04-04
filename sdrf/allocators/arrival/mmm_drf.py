@@ -2,10 +2,10 @@
 import numpy as np
 from math import log
 
-from mmmalloc.allocators.arrival import Arrival, Task
-from mmmalloc.helpers.priority_queue import PriorityQueue
+from sdrf.allocators.arrival import Arrival, Task
+from sdrf.helpers.priority_queue import PriorityQueue
 
-from mmmalloc.helpers.dynamic_priority_queue import DynamicPriorityQueue, \
+from sdrf.helpers.dynamic_priority_queue import DynamicPriorityQueue, \
     Element
 
 

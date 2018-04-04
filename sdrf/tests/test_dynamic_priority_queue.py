@@ -1,6 +1,6 @@
 from math import log
 
-from mmmalloc.helpers.dynamic_priority_queue import DynamicPriorityQueue, Element
+from sdrf.helpers.dynamic_priority_queue import DynamicPriorityQueue, Element
 
 system_cpu = 20.0
 system_memory = 100.0

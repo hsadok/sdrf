@@ -3,7 +3,7 @@ from os import listdir, path
 import pandas as pd
 from tqdm import tqdm
 
-from mmmalloc.helpers.schema import Schema
+from sdrf.helpers.schema import Schema
 
 
 def task_events(dataset_dir, progress=False):

@@ -3,11 +3,11 @@ import threading
 from os import path
 import csv
 
-from mmmalloc.allocators.arrival.wdrf import WDRF
-from mmmalloc.allocators.arrival.mmm_drf import MMMDRF, Reserved3MDRF
-from mmmalloc.helpers.file_name import FileName
-from mmmalloc.tasks import tasks_generator, save_from_deque, tasks_file_header
-from mmmalloc.tasks.system_utilization import SystemUtilization
+from sdrf.allocators.arrival.wdrf import WDRF
+from sdrf.allocators.arrival.mmm_drf import MMMDRF, Reserved3MDRF
+from sdrf.helpers.file_name import FileName
+from sdrf.tasks import tasks_generator, save_from_deque, tasks_file_header
+from sdrf.tasks.system_utilization import SystemUtilization
 
 
 def wdrf(tasks_file, saving_dir, resource_percentage, use_weights=False):

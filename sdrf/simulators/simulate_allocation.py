@@ -6,8 +6,8 @@ import pandas as pd
 from progress.bar import Bar
 from progress.spinner import Spinner
 
-from mmmalloc.allocators.hyperplane_allocation import allocate
-from mmmalloc.helpers.file_name import FileName
+from sdrf.allocators.hyperplane_allocation import allocate
+from sdrf.helpers.file_name import FileName
 
 
 class Allocator(object):

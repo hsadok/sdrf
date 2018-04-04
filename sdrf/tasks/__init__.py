@@ -7,9 +7,9 @@ import os
 import pandas as pd
 from tqdm import tqdm
 
-from mmmalloc.allocators.arrival import Task
-from mmmalloc.helpers import get_line_number
-from mmmalloc.helpers.schema import SchemaIndex
+from sdrf.allocators.arrival import Task
+from sdrf.helpers import get_line_number
+from sdrf.helpers.schema import SchemaIndex
 
 tasks_file_header = ['submit_time', 'start_time', 'finish_time', 'user_id',
                      'task_id', 'cpu', 'memory']

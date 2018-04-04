@@ -7,10 +7,10 @@ from collections import deque
 
 from tqdm import tqdm
 
-from mmmalloc.allocators.arrival.mmm_drf import time_scale_multiplier
-from mmmalloc.helpers.file_name import FileName
-from mmmalloc.tasks import tasks_generator, save_from_deque
-from mmmalloc.tasks.system_utilization import SystemUtilization
+from sdrf.allocators.arrival.mmm_drf import time_scale_multiplier
+from sdrf.helpers.file_name import FileName
+from sdrf.tasks import tasks_generator, save_from_deque
+from sdrf.tasks.system_utilization import SystemUtilization
 
 
 def credibility_summary(tasks_file, original_dataset, saving_file):

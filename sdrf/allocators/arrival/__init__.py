@@ -3,7 +3,7 @@ import numpy as np
 from collections import defaultdict, deque
 import itertools
 
-from mmmalloc.helpers.priority_queue import PriorityQueue
+from sdrf.helpers.priority_queue import PriorityQueue
 
 
 class Task(object):

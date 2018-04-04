@@ -3,9 +3,9 @@ import threading
 from collections import deque
 import numpy as np
 
-from mmmalloc.tasks import save_from_deque, tasks_file_header
-from mmmalloc.helpers.schema import Schema, SchemaIndex
-from mmmalloc.helpers.task_events import task_events
+from sdrf.tasks import save_from_deque, tasks_file_header
+from sdrf.helpers.schema import Schema, SchemaIndex
+from sdrf.helpers.task_events import task_events
 
 
 def filter_tasks(dataset_dir, saving_file):

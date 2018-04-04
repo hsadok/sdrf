@@ -4,8 +4,8 @@ import multiprocessing
 import psutil
 import time
 from simulate_allocation import simulate_allocation
-from mmmalloc.helpers.allocation import Allocation
-from mmmalloc.helpers.file_name import FileName
+from sdrf.helpers.allocation import Allocation
+from sdrf.helpers.file_name import FileName
 
 
 def multicore_simulate_allocation(dataset_file, saving_dir,

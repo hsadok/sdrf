@@ -13,10 +13,10 @@ mkvirtualenv mmmdrf
 workon mmmdrf
 pip install -r requirements.txt
 
-cd mmmalloc/helpers/c_dynamic_priority_queue
+cd sdrf/helpers/c_dynamic_priority_queue
 /usr/bin/env bash compile.sh
 
 cd -
-cd mmmalloc/tests
+cd sdrf/tests
 /usr/bin/env bash compile.sh
 cd -

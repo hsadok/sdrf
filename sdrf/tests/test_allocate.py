@@ -1,5 +1,5 @@
 import unittest
-from mmmalloc.allocators.hyperplane_allocation import allocate
+from sdrf.allocators.hyperplane_allocation import allocate
 
 
 def check_allocation(desire, output):

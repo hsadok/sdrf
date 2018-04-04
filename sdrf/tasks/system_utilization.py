@@ -7,8 +7,8 @@ import json
 from os.path import join, dirname, abspath, exists
 from tqdm import tqdm
 
-from mmmalloc.helpers.schema import SchemaIndex
-from mmmalloc.tasks import tasks_file_header
+from sdrf.helpers.schema import SchemaIndex
+from sdrf.tasks import tasks_file_header
 
 
 def df_mean(df, column, period=None):

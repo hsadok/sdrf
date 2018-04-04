@@ -3,7 +3,7 @@ from collections import deque, defaultdict
 
 import sys
 
-from mmmalloc.tasks import tasks_generator, jobs_file_header, save_from_deque
+from sdrf.tasks import tasks_generator, jobs_file_header, save_from_deque
 
 
 class RunningJob(object):

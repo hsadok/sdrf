@@ -3,7 +3,7 @@
 from collections import defaultdict
 from os import listdir, path
 
-from mmmalloc.helpers.file_name import FileName
+from sdrf.helpers.file_name import FileName
 
 
 class Allocation(object):

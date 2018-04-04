@@ -5,7 +5,7 @@ import sys
 from itertools import product
 import ConfigParser as configparser
 
-from mmmalloc.helpers.file_name import FileName
+from sdrf.helpers.file_name import FileName
 
 
 @click.group()
@@ -19,7 +19,7 @@ def cli():
 @click.argument('saving_dir', type=click.Path(exists=True, file_okay=False,
                                               writable=True))
 def aggregate_user_events(*args, **kwargs):
-    from mmmalloc.user_types.aggregate_user_events import aggregate_user_events
+    from sdrf.user_types.aggregate_user_events import aggregate_user_events
     aggregate_user_events(*args, **kwargs)
 
 
@@ -29,7 +29,7 @@ def aggregate_user_events(*args, **kwargs):
 @click.argument('saving_file', type=click.Path(file_okay=True, writable=True,
                                                dir_okay=False))
 def filter_tasks(*args, **kwargs):
-    from mmmalloc.tasks.filter_tasks import filter_tasks
+    from sdrf.tasks.filter_tasks import filter_tasks
     filter_tasks(*args, **kwargs)
 
 
@@ -38,7 +38,7 @@ def filter_tasks(*args, **kwargs):
                                               dir_okay=False, readable=True),
                 nargs=-1)
 def system_utilization(tasks_file):
-    from mmmalloc.tasks.system_utilization import SystemUtilization
+    from sdrf.tasks.system_utilization import SystemUtilization
     for f in tasks_file:
         if '.' in f:
             dot_split = f.split('.')
@@ -54,7 +54,7 @@ def system_utilization(tasks_file):
 @click.argument('saving_dir', type=click.Path(exists=True, file_okay=False,
                                               writable=True))
 def generate_user_needs(*args, **kwargs):
-    from mmmalloc.user_types.generate_user_needs import generate_all_user_needs
+    from sdrf.user_types.generate_user_needs import generate_all_user_needs
     generate_all_user_needs(*args, **kwargs)
 
 
@@ -67,7 +67,7 @@ def generate_user_needs(*args, **kwargs):
 @click.argument('resource_type', type=click.Choice(['cpu', 'memory']))
 @click.option('--num_users', default=0)
 def sample_needs(*args, **kwargs):
-    from mmmalloc.user_types.sample_needs import sample_needs
+    from sdrf.user_types.sample_needs import sample_needs
     sample_needs(*args, **kwargs)
 
 
@@ -79,7 +79,7 @@ def sample_needs(*args, **kwargs):
 @click.argument('delta', type=click.FLOAT)
 @click.argument('resource_percentage', type=click.FLOAT)
 def simulate_allocation(*args, **kwargs):
-    from mmmalloc.simulators.simulate_allocation import simulate_allocation
+    from sdrf.simulators.simulate_allocation import simulate_allocation
     simulate_allocation(*args, **kwargs)
 
 
@@ -139,10 +139,10 @@ def simulate_task_allocation(tasks_file, saving_path, allocator, config, delta,
     saving_path = saving_path or '.'
 
     if allocator == 'wdrf':
-        from mmmalloc.simulators.simulate_task_allocation import wdrf as sim
+        from sdrf.simulators.simulate_task_allocation import wdrf as sim
         arg_iterator = product([tasks_file], [saving_path], resource,[weights])
     else:  # 3m-drf
-        from mmmalloc.simulators.simulate_task_allocation import mmm_drf as sim
+        from sdrf.simulators.simulate_task_allocation import mmm_drf as sim
         arg_iterator = product([tasks_file], [saving_path], resource, delta,
                                [same_share], [reserved])
     for arg in arg_iterator:
@@ -154,7 +154,7 @@ def simulate_task_allocation(tasks_file, saving_path, allocator, config, delta,
                                               dir_okay=False, readable=True),
                 nargs=-1)
 def jobs_summary(tasks_file):
-    from mmmalloc.tasks.jobs_summary import jobs_summary as run_jobs_summary
+    from sdrf.tasks.jobs_summary import jobs_summary as run_jobs_summary
     for f in tasks_file:
         file_att = FileName(f)
         allocator = file_att.attributes.pop('allocator')
@@ -176,7 +176,7 @@ def jobs_summary(tasks_file):
                 type=click.Path(exists=True, file_okay=True,
                                 dir_okay=False, readable=True))
 def credibility_from_tasks(tasks_file, original_dataset):
-    from mmmalloc.tasks.credibility import credibility_summary
+    from sdrf.tasks.credibility import credibility_summary
     for f in tasks_file:
         if '.' in f:
             dot_split = f.split('.')
@@ -196,7 +196,7 @@ def credibility_from_tasks(tasks_file, original_dataset):
 @click.argument('config_file', type=click.Path(exists=True, file_okay=True,
                                                dir_okay=False, readable=True))
 def multicore_simulate_allocation(dataset_file, saving_dir, config_file):
-    from mmmalloc.simulators.multicore_simulate_allocation import \
+    from sdrf.simulators.multicore_simulate_allocation import \
         multicore_simulate_allocation
     config = configparser.ConfigParser()
     config.read(config_file)
@@ -213,7 +213,7 @@ def multicore_simulate_allocation(dataset_file, saving_dir, config_file):
 @click.argument('data_path',
                 type=click.Path(exists=True, file_okay=False, readable=True))
 def experiments(data_path):
-    import mmmalloc.analysis.experiments2 as exp
+    import sdrf.analysis.experiments2 as exp
     exp.request_fulfilment(data_path)
     exp.resource_vs_utility(data_path)
     exp.allocation_smoothness(data_path)

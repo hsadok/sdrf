@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-from mmmalloc.allocators.arrival import Arrival, Task
-from mmmalloc.helpers.priority_queue import PriorityQueue
+from sdrf.allocators.arrival import Arrival, Task
+from sdrf.helpers.priority_queue import PriorityQueue
 
 
 # arrival allocations are simpler, they just decide which task to run based on
