@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-from sdrf.allocators.arrival import Arrival, Task
+from sdrf.allocators import Arrival, Task
 from sdrf.helpers.priority_queue import PriorityQueue
 
 

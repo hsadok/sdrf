@@ -2,12 +2,12 @@
 # credibility.py
 # 2017, all rights reserved
 import threading
-from math import exp, log
 from collections import deque
+from math import exp, log
 
 from tqdm import tqdm
 
-from sdrf.allocators.arrival.sdrf import time_scale_multiplier
+from sdrf.allocators.sdrf import time_scale_multiplier
 from sdrf.helpers.file_name import FileName
 from sdrf.tasks import tasks_generator, save_from_deque
 from sdrf.tasks.system_utilization import SystemUtilization

@@ -2,7 +2,7 @@
 import numpy as np
 from math import log
 
-from sdrf.allocators.arrival import Arrival, Task
+from sdrf.allocators import Arrival, Task
 from sdrf.helpers.priority_queue import PriorityQueue
 
 from sdrf.helpers.live_tree import LiveTree, \

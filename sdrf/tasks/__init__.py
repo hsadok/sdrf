@@ -7,7 +7,7 @@ import os
 import pandas as pd
 from tqdm import tqdm
 
-from sdrf.allocators.arrival import Task
+from sdrf.allocators import Task
 from sdrf.helpers import get_line_number
 from sdrf.helpers.schema import SchemaIndex
 
