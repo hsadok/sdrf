@@ -5,12 +5,12 @@ from math import log
 from sdrf.allocators.arrival import Arrival, Task
 from sdrf.helpers.priority_queue import PriorityQueue
 
-from sdrf.helpers.dynamic_priority_queue import DynamicPriorityQueue, \
+from sdrf.helpers.live_tree import LiveTree, \
     Element
 
 
 # Using those indexes make stuff less generic, but generality was kinda
-# compromised already when I designed the DynamicPriorityQueue considering only
+# compromised already when I designed the LiveTree considering only
 # cpu and memory  ¯\_(ツ)_/¯
 cpu_index = 0
 memory_index = 1
@@ -149,7 +149,7 @@ class Reserved3MDRF(MMMDRF):
 
 # This class has 2 main purposes, to make sure the credibility remains up to
 # date when the user is removed and to guarantee that only the name goes out
-class QueueProxy(DynamicPriorityQueue):
+class QueueProxy(LiveTree):
     def __init__(self, mmmdrf_obj):
         super(QueueProxy, self).__init__()
         self.mmmdrf_obj = mmmdrf_obj

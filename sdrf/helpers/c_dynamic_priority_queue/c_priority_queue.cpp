@@ -85,7 +85,7 @@ static QueueTimes dynamic_priority_queue_times;
 
 extern "C" {
   typedef PriorityQueue::elements_set::const_iterator PriorityQueue_it;
-  typedef DynamicPriorityQueue::elements_map::const_iterator DynamicPriorityQueue_it;
+  typedef LiveTree::elements_map::const_iterator LiveTree_it;
 
   PriorityQueue* PriorityQueue_new() {
     priority_queue_times = QueueTimes();
@@ -207,23 +207,23 @@ extern "C" {
   }
 
 
-  DynamicPriorityQueue* DynamicPriorityQueue_new() {
+  LiveTree* LiveTree_new() {
     dynamic_priority_queue_times = QueueTimes();
     ref_time = std::chrono::high_resolution_clock::now();
 
-    DynamicPriorityQueue* ptr = new DynamicPriorityQueue();
+    LiveTree* ptr = new LiveTree();
 
     dynamic_priority_queue_times.new_t += std::chrono::high_resolution_clock::now() - ref_time;
     return ptr;
   }
-  void DynamicPriorityQueue_add(DynamicPriorityQueue* queue, Element* element) {
+  void LiveTree_add(LiveTree* queue, Element* element) {
     ref_time = std::chrono::high_resolution_clock::now();
 
     queue->add(*element);
 
     dynamic_priority_queue_times.add_t += std::chrono::high_resolution_clock::now() - ref_time;
   }
-  Element* DynamicPriorityQueue_pop(DynamicPriorityQueue* queue,
+  Element* LiveTree_pop(LiveTree* queue,
                                     double current_time) {
     ref_time = std::chrono::high_resolution_clock::now();
 
@@ -232,7 +232,7 @@ extern "C" {
     dynamic_priority_queue_times.pop_t += std::chrono::high_resolution_clock::now() - ref_time;
     return element;
   }
-  Element* DynamicPriorityQueue_get_min(DynamicPriorityQueue* queue,
+  Element* LiveTree_get_min(LiveTree* queue,
                                         double current_time) {
     ref_time = std::chrono::high_resolution_clock::now();
 
@@ -241,24 +241,24 @@ extern "C" {
     dynamic_priority_queue_times.get_min_t += std::chrono::high_resolution_clock::now() - ref_time;
     return element;
   }
-  DynamicPriorityQueue_it* DynamicPriorityQueue_cbegin(
-          DynamicPriorityQueue* queue) {
+  LiveTree_it* LiveTree_cbegin(
+          LiveTree* queue) {
     ref_time = std::chrono::high_resolution_clock::now();
 
-    DynamicPriorityQueue_it* it = new DynamicPriorityQueue_it(queue->cbegin());
+    LiveTree_it* it = new LiveTree_it(queue->cbegin());
 
     dynamic_priority_queue_times.cbegin_t += std::chrono::high_resolution_clock::now() - ref_time;
     return it;
   }
-  void DynamicPriorityQueue_it_next(DynamicPriorityQueue_it* it) {
+  void LiveTree_it_next(LiveTree_it* it) {
     ref_time = std::chrono::high_resolution_clock::now();
 
     ++(*it);
 
     dynamic_priority_queue_times.it_next_t += std::chrono::high_resolution_clock::now() - ref_time;
   }
-  Element* DynamicPriorityQueue_get_element_from_it(
-          DynamicPriorityQueue_it* it) {
+  Element* LiveTree_get_element_from_it(
+          LiveTree_it* it) {
     ref_time = std::chrono::high_resolution_clock::now();
 
     Element* element = new Element((*it)->first);
@@ -266,8 +266,8 @@ extern "C" {
     dynamic_priority_queue_times.get_element_from_it_t += std::chrono::high_resolution_clock::now() - ref_time;
     return element;
   }
-  int DynamicPriorityQueue_it_is_end(DynamicPriorityQueue* queue,
-                                     DynamicPriorityQueue_it* it) {
+  int LiveTree_it_is_end(LiveTree* queue,
+                                     LiveTree_it* it) {
     ref_time = std::chrono::high_resolution_clock::now();
 
     bool is_end = *it == queue->cend();
@@ -275,14 +275,14 @@ extern "C" {
     dynamic_priority_queue_times.it_is_end_t += std::chrono::high_resolution_clock::now() - ref_time;
     return is_end;
   }
-  void DynamicPriorityQueue_delete_it(DynamicPriorityQueue_it* it) {
+  void LiveTree_delete_it(LiveTree_it* it) {
     ref_time = std::chrono::high_resolution_clock::now();
 
     delete it;
 
     dynamic_priority_queue_times.delete_it_t += std::chrono::high_resolution_clock::now() - ref_time;
   }
-  Element* DynamicPriorityQueue_remove(DynamicPriorityQueue* queue,
+  Element* LiveTree_remove(LiveTree* queue,
                                        dpq_name_t name) {
     ref_time = std::chrono::high_resolution_clock::now();
 
@@ -291,7 +291,7 @@ extern "C" {
     dynamic_priority_queue_times.remove_t += std::chrono::high_resolution_clock::now() - ref_time;
     return element;
   }
-  int DynamicPriorityQueue_empty(DynamicPriorityQueue* queue) {
+  int LiveTree_empty(LiveTree* queue) {
     ref_time = std::chrono::high_resolution_clock::now();
 
     bool is_empty = queue->empty();
@@ -299,7 +299,7 @@ extern "C" {
     dynamic_priority_queue_times.empty_t += std::chrono::high_resolution_clock::now() - ref_time;
     return is_empty;
   }
-  int DynamicPriorityQueue_element_is_in(DynamicPriorityQueue* queue,
+  int LiveTree_element_is_in(LiveTree* queue,
                                          dpq_name_t name) {
     ref_time = std::chrono::high_resolution_clock::now();
 
@@ -308,7 +308,7 @@ extern "C" {
     dynamic_priority_queue_times.element_is_in_t += std::chrono::high_resolution_clock::now() - ref_time;
     return is_in;
   }
-  void DynamicPriorityQueue_update(DynamicPriorityQueue* queue,
+  void LiveTree_update(LiveTree* queue,
                                    double current_time) {
     ref_time = std::chrono::high_resolution_clock::now();
 
@@ -316,7 +316,7 @@ extern "C" {
 
     dynamic_priority_queue_times.update_t += std::chrono::high_resolution_clock::now() - ref_time;
   }
-  void DynamicPriorityQueue_string(DynamicPriorityQueue* queue, char* buffer,
+  void LiveTree_string(LiveTree* queue, char* buffer,
                                    int max_size) {
     ref_time = std::chrono::high_resolution_clock::now();
 
@@ -324,17 +324,17 @@ extern "C" {
 
     dynamic_priority_queue_times.string_t += std::chrono::high_resolution_clock::now() - ref_time;
   }
-  void DynamicPriorityQueue_delete(DynamicPriorityQueue* queue) {
+  void LiveTree_delete(LiveTree* queue) {
     ref_time = std::chrono::high_resolution_clock::now();
 
     delete queue;
 
     dynamic_priority_queue_times.delete_t += std::chrono::high_resolution_clock::now() - ref_time;
   }
-  void DynamicPriorityQueue_print_stats(char* info, char* file_name) {
-    int insert_count = DynamicPriorityQueue::get_insert_count();
-    int update_count = DynamicPriorityQueue::get_update_count();
-    int events_count = DynamicPriorityQueue::get_events_count();
+  void LiveTree_print_stats(char* info, char* file_name) {
+    int insert_count = LiveTree::get_insert_count();
+    int update_count = LiveTree::get_update_count();
+    int events_count = LiveTree::get_events_count();
     dynamic_priority_queue_times.print_stats(info, file_name, insert_count, update_count, events_count);
   }
 

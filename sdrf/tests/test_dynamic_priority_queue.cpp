@@ -19,7 +19,7 @@ int main()
 
   double update_time = 1.0;
 
-  DynamicPriorityQueue queue = DynamicPriorityQueue();
+  LiveTree queue = LiveTree();
 
   double c_o_cpu = -8.0;
   double c_o_mem = 1.0;

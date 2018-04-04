@@ -18,11 +18,11 @@
 
 //#define LOGIC_CHECK
 
-int DynamicPriorityQueue::insert_count = 0;
-int DynamicPriorityQueue::update_count = 0;
-int DynamicPriorityQueue::events_count = 0;
+int LiveTree::insert_count = 0;
+int LiveTree::update_count = 0;
+int LiveTree::events_count = 0;
 
-DynamicPriorityQueue::DynamicPriorityQueue() {
+LiveTree::LiveTree() {
   #ifdef LOGIC_CHECK
     #pragma message "Logic check is activated, this will make the code slower."
     std::cout << "LOGIC CHECK" << std::endl;
@@ -30,11 +30,11 @@ DynamicPriorityQueue::DynamicPriorityQueue() {
   last_time = -1;
 }
 
-void DynamicPriorityQueue::add(Element element) {
-  DynamicPriorityQueue::insert_count++;
+void LiveTree::add(Element element) {
+  LiveTree::insert_count++;
   dpq_name_t element_name = element.name;
   if (element_is_in(element_name)) {
-    throw std::runtime_error("Element already on DynamicPriorityQueue");
+    throw std::runtime_error("Element already on LiveTree");
   }
 
   if (element.get_update_time() > last_time) {
@@ -63,17 +63,17 @@ void DynamicPriorityQueue::add(Element element) {
   update_event(element_it);
 }
 
-Element DynamicPriorityQueue::pop(dpq_time_t current_time) {
+Element LiveTree::pop(dpq_time_t current_time) {
   if (empty()) {
-    throw std::out_of_range("DynamicPriorityQueue is empty");
+    throw std::out_of_range("LiveTree is empty");
   }
   update(current_time);
   return remove((elements_priority.begin()->first).name);
 }
 
-Element DynamicPriorityQueue::get_min(dpq_time_t current_time) {
+Element LiveTree::get_min(dpq_time_t current_time) {
   if (empty()) {
-    throw std::out_of_range("DynamicPriorityQueue is empty");
+    throw std::out_of_range("LiveTree is empty");
   }
   update(current_time);
   return elements_priority.begin()->first;
@@ -82,15 +82,15 @@ Element DynamicPriorityQueue::get_min(dpq_time_t current_time) {
 
 // TODO: those iterators are leaking iterators to the internal events_set,
 // not nice... They should be replaced by a custom iterator for the keys only
-DynamicPriorityQueue::elements_map::const_iterator DynamicPriorityQueue::cbegin(){
+LiveTree::elements_map::const_iterator LiveTree::cbegin(){
   return elements_priority.cbegin();
 }
 
-DynamicPriorityQueue::elements_map::const_iterator DynamicPriorityQueue::cend(){
+LiveTree::elements_map::const_iterator LiveTree::cend(){
   return elements_priority.cend();
 }
 
-Element DynamicPriorityQueue::remove(const dpq_name_t& name) {
+Element LiveTree::remove(const dpq_name_t& name) {
   if(name >= elements_name_mapper.size()) {
     throw std::runtime_error("Element not found: " + std::to_string(name) +
                " vector size: " + std::to_string(elements_name_mapper.size()));
@@ -116,11 +116,11 @@ Element DynamicPriorityQueue::remove(const dpq_name_t& name) {
   return removed_element;
 }
 
-bool DynamicPriorityQueue::empty() const {
+bool LiveTree::empty() const {
   return elements_priority.empty();
 }
 
-bool DynamicPriorityQueue::element_is_in(const dpq_name_t& name) const {
+bool LiveTree::element_is_in(const dpq_name_t& name) const {
   if(name >= elements_name_mapper.size()) {
     return false;
   }
@@ -128,7 +128,7 @@ bool DynamicPriorityQueue::element_is_in(const dpq_name_t& name) const {
   return existing_element != elements_priority.end();
 }
 
-DynamicPriorityQueue::operator std::string() const {
+LiveTree::operator std::string() const {
   std::string out_str = "[ ";
   for (auto element : elements_priority) {
     Element cpy(element.first);
@@ -145,25 +145,25 @@ DynamicPriorityQueue::operator std::string() const {
   return out_str;
 }
 
-void DynamicPriorityQueue::check_order() {
+void LiveTree::check_order() {
   long double last_priority = -100;
   for (auto element : elements_priority) {
     Element cpy(element.first);
     cpy.update(last_time);
     if ( (last_priority - cpy.get_priority()) > 1e-15 ) {
-      throw std::logic_error("DynamicPriorityQueue not properly ordered");
+      throw std::logic_error("LiveTree not properly ordered");
     }
     last_priority = cpy.get_priority();
   }
 }
 
-void DynamicPriorityQueue::update(dpq_time_t current_time) {
-  DynamicPriorityQueue::update_count++;
+void LiveTree::update(dpq_time_t current_time) {
+  LiveTree::update_count++;
   if (last_time == current_time) {
     return;
   }
   if (last_time > current_time) {
-    throw std::runtime_error("DynamicPriorityQueue can't go back in time...");
+    throw std::runtime_error("LiveTree can't go back in time...");
   }
 
   auto event_it = events.begin();
@@ -174,7 +174,7 @@ void DynamicPriorityQueue::update(dpq_time_t current_time) {
   std::forward_list<Element> pending_reinsertion;
   elements_map::iterator element_it, neighbor_it;
   while( (event_it != events.end()) && (event_it->first < current_time) ) {
-    DynamicPriorityQueue::events_count++;
+    LiveTree::events_count++;
     element_it = elements_name_mapper.at(event_it->second);
     neighbor_it = std::next(element_it);
     pending_reinsertion.push_front(remove(event_it->second));
@@ -194,18 +194,18 @@ void DynamicPriorityQueue::update(dpq_time_t current_time) {
   #endif
 }
 
-int DynamicPriorityQueue::get_insert_count(){
-  return DynamicPriorityQueue::insert_count;
+int LiveTree::get_insert_count(){
+  return LiveTree::insert_count;
 }
-int DynamicPriorityQueue::get_update_count(){
-  return DynamicPriorityQueue::update_count;
+int LiveTree::get_update_count(){
+  return LiveTree::update_count;
 }
-int DynamicPriorityQueue::get_events_count(){
-  return DynamicPriorityQueue::events_count;
+int LiveTree::get_events_count(){
+  return LiveTree::events_count;
 }
 
 
-void DynamicPriorityQueue::update_event(elements_map::iterator iter) {
+void LiveTree::update_event(elements_map::iterator iter) {
   if (iter->second != events.end()) {
     events.erase(iter->second);
   }

@@ -1,6 +1,6 @@
 from math import log
 
-from sdrf.helpers.dynamic_priority_queue import PriorityQueue, Element
+from sdrf.helpers.live_tree import PriorityQueue, Element
 
 system_cpu = 20.0
 system_memory = 100.0

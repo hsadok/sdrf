@@ -12,12 +12,12 @@ lib.PriorityQueue_get_min.restype = ct.c_void_p
 lib.PriorityQueue_remove.restype = ct.c_void_p
 lib.PriorityQueue_cbegin.restype = ct.c_void_p
 lib.PriorityQueue_get_element_from_it.restype = ct.c_void_p
-lib.DynamicPriorityQueue_new.restype = ct.c_void_p
-lib.DynamicPriorityQueue_pop.restype = ct.c_void_p
-lib.DynamicPriorityQueue_get_min.restype = ct.c_void_p
-lib.DynamicPriorityQueue_remove.restype = ct.c_void_p
-lib.DynamicPriorityQueue_cbegin.restype = ct.c_void_p
-lib.DynamicPriorityQueue_get_element_from_it.restype = ct.c_void_p
+lib.LiveTree_new.restype = ct.c_void_p
+lib.LiveTree_pop.restype = ct.c_void_p
+lib.LiveTree_get_min.restype = ct.c_void_p
+lib.LiveTree_remove.restype = ct.c_void_p
+lib.LiveTree_cbegin.restype = ct.c_void_p
+lib.LiveTree_get_element_from_it.restype = ct.c_void_p
 lib.Element_new.restype = ct.c_void_p
 lib.Element_get_cpu_credibility.restype = ct.c_double
 lib.Element_get_memory_credibility.restype = ct.c_double
@@ -102,78 +102,78 @@ class PriorityQueue(object):
         lib.PriorityQueue_print_stats(c_info, c_file_name)
 
 
-class DynamicPriorityQueueIterator:
+class LiveTreeIterator:
     def __init__(self, queue_ptr):
         self.queue_ptr = queue_ptr
-        self.iter_ptr = ct.c_void_p(lib.DynamicPriorityQueue_cbegin(self.queue_ptr))
+        self.iter_ptr = ct.c_void_p(lib.LiveTree_cbegin(self.queue_ptr))
 
     def __del__(self):
-        lib.DynamicPriorityQueue_delete_it(self.iter_ptr)
+        lib.LiveTree_delete_it(self.iter_ptr)
 
     def __iter__(self):
         return self
 
     def next(self):
-        if lib.DynamicPriorityQueue_it_is_end(self.queue_ptr, self.iter_ptr):
+        if lib.LiveTree_it_is_end(self.queue_ptr, self.iter_ptr):
             raise StopIteration
 
-        element_ptr = ct.c_void_p(lib.DynamicPriorityQueue_get_element_from_it(
+        element_ptr = ct.c_void_p(lib.LiveTree_get_element_from_it(
             self.iter_ptr))
-        lib.DynamicPriorityQueue_it_next(self.iter_ptr)
+        lib.LiveTree_it_next(self.iter_ptr)
         return Element(obj=element_ptr)
 
 
-class DynamicPriorityQueue(object):
+class LiveTree(object):
     def __init__(self):
-        self.obj = ct.c_void_p(lib.DynamicPriorityQueue_new())
+        self.obj = ct.c_void_p(lib.LiveTree_new())
 
     def __del__(self):
-        lib.DynamicPriorityQueue_delete(self.obj)
+        lib.LiveTree_delete(self.obj)
 
     def __repr__(self):
         buf = ct.create_string_buffer(max_repr_size)
-        lib.DynamicPriorityQueue_string(self.obj, buf, max_repr_size)
+        lib.LiveTree_string(self.obj, buf, max_repr_size)
         return buf.value
 
     def __contains__(self, key):
-        return bool(lib.DynamicPriorityQueue_element_is_in(self.obj, key))
+        return bool(lib.LiveTree_element_is_in(self.obj, key))
 
     def add(self, element):
-        lib.DynamicPriorityQueue_add(self.obj, element.obj)
+        lib.LiveTree_add(self.obj, element.obj)
 
     def pop(self, current_time):
-        element_obj = ct.c_void_p(lib.DynamicPriorityQueue_pop(self.obj,
+        element_obj = ct.c_void_p(lib.LiveTree_pop(self.obj,
                                                    ct.c_double(current_time)))
         return Element(obj=element_obj)
 
     def get_min(self, current_time):
-        element_obj = ct.c_void_p(lib.DynamicPriorityQueue_get_min(
+        element_obj = ct.c_void_p(lib.LiveTree_get_min(
             self.obj, ct.c_double(current_time)))
         return Element(obj=element_obj)
 
     def remove(self, name):
-        element_obj = ct.c_void_p(lib.DynamicPriorityQueue_remove(self.obj, name))
+        element_obj = ct.c_void_p(lib.LiveTree_remove(self.obj, name))
         return Element(obj=element_obj)
 
     def is_empty(self):
-        return bool(lib.DynamicPriorityQueue_empty(self.obj))
+        return bool(lib.LiveTree_empty(self.obj))
 
     def update(self, current_time):
-        lib.DynamicPriorityQueue_update(self.obj, ct.c_double(current_time))
+        lib.LiveTree_update(self.obj, ct.c_double(current_time))
 
     def sorted_elements(self):
-        return DynamicPriorityQueueIterator(self.obj)
+        return LiveTreeIterator(self.obj)
 
     @staticmethod
     def print_stats(file_name, info=None):
         if info is not None:
-            info['queue'] = 'DynamicPriorityQueue'
+            info['queue'] = 'LiveTree'
             info_string = json.dumps(info)
         else:
             info_string = ''
         c_info = ct.c_char_p(info_string)
         c_file_name = ct.c_char_p(file_name)
-        lib.DynamicPriorityQueue_print_stats(c_info, c_file_name)
+        lib.LiveTree_print_stats(c_info, c_file_name)
 
 
 class Element(object):

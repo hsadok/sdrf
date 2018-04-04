@@ -1,6 +1,6 @@
 from math import log
 
-from sdrf.helpers.dynamic_priority_queue import DynamicPriorityQueue, Element
+from sdrf.helpers.live_tree import LiveTree, Element
 
 system_cpu = 20.0
 system_memory = 100.0
@@ -9,7 +9,7 @@ tau = -1/log(delta)
 
 update_time = 1.0
 
-queue = DynamicPriorityQueue()
+queue = LiveTree()
 
 c_o_cpu = -8.0
 c_o_mem = 1.0

@@ -20,13 +20,13 @@
  * be switched with their right neighbor. If this is the case they calculate
  * when this is going to happen and add an event to the events set
  */
-class DynamicPriorityQueue {
+class LiveTree {
  public:
   typedef std::set<std::pair<dpq_time_t, dpq_name_t>> events_set; //time, name
   typedef std::map<Element, events_set::iterator> elements_map; //element, event
   typedef std::vector<elements_map::iterator> elements_name_map;
 
-  DynamicPriorityQueue();
+  LiveTree();
   void add(const Element element);
   Element pop(dpq_time_t current_time);
   Element get_min(dpq_time_t current_time);
