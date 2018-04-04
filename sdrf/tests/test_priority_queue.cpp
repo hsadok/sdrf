@@ -16,6 +16,9 @@ int main()
   double system_memory = 100.0;
   double delta = 0.9999;
   double tau = -1/log(delta);
+  int num_users = 3;
+  double cpu_share = system_cpu / num_users;
+  double mem_share = system_memory / num_users;
 
   double update_time = 1.0;
 
@@ -26,7 +29,7 @@ int main()
   double o_cpu = 5.0;
   double o_mem = 5.0;
   Element e1 = Element(10, update_time, tau, system_cpu, c_o_cpu, o_cpu,
-    system_memory, c_o_mem, o_mem);
+                       cpu_share, system_memory, c_o_mem, o_mem, mem_share);
   queue.add(e1);
 
   std::cout << std::string(queue) << std::endl;
@@ -36,7 +39,7 @@ int main()
   o_cpu = 0.0;
   o_mem = 3.3;
   Element e2 = Element(5, update_time, tau, system_cpu, c_o_cpu, o_cpu,
-    system_memory, c_o_mem, o_mem);
+                       cpu_share, system_memory, c_o_mem, o_mem, mem_share);
   queue.add(e2);
   std::cout << std::string(queue) << std::endl;
 
@@ -54,7 +57,7 @@ int main()
   o_cpu = 5.0;
   o_mem = 5.0;
   Element e3 = Element(10, update_time, tau, system_cpu, c_o_cpu, o_cpu,
-    system_memory, c_o_mem, o_mem);
+                       cpu_share, system_memory, c_o_mem, o_mem, mem_share);
   queue.add(e3);
   queue.add(e2);
   std::cout << std::string(queue) << std::endl;
