@@ -23,7 +23,7 @@ time_scale_multiplier = 1e6  # using seconds
 # the 3M allocation must only come into action when users already reached 1/n
 # of resource utilization for their dominant resource
 # there must be a separate credibility for each resource and user
-class MMMDRF(Arrival):
+class SDRF(Arrival):
     def __init__(self, capacities, users_resources_dict, delta, start_time,
                  initial_credibilities=None, keep_history=False):
         """
@@ -32,7 +32,7 @@ class MMMDRF(Arrival):
         """
         num_users = len(users_resources_dict)
 
-        super(MMMDRF, self).__init__(capacities, num_users, keep_history)
+        super(SDRF, self).__init__(capacities, num_users, keep_history)
 
         self.current_time = start_time
 
@@ -103,7 +103,7 @@ class MMMDRF(Arrival):
             print 'cpu: ',  u.cpu_credibility, 'memory: ', u.memory_credibility
 
 
-class Reserved3MDRF(MMMDRF):
+class Reserved3MDRF(SDRF):
     def __init__(self, capacities, users_resources_dict, delta, start_time,
                  initial_credibilities=None, keep_history=False):
         """
@@ -150,9 +150,9 @@ class Reserved3MDRF(MMMDRF):
 # This class has 2 main purposes, to make sure the credibility remains up to
 # date when the user is removed and to guarantee that only the name goes out
 class QueueProxy(LiveTree):
-    def __init__(self, mmmdrf_obj):
+    def __init__(self, sdrf_obj):
         super(QueueProxy, self).__init__()
-        self.mmmdrf_obj = mmmdrf_obj
+        self.sdrf_obj = sdrf_obj
 
     def sorted_elements(self):
         self.update()
@@ -162,8 +162,8 @@ class QueueProxy(LiveTree):
         if user_name in self:
             self.remove(user_name)
 
-        element = self.mmmdrf_obj.idle_users[user_name]
-        element.update(self.mmmdrf_obj.current_time)
+        element = self.sdrf_obj.idle_users[user_name]
+        element.update(self.sdrf_obj.current_time)
 
         element.cpu_relative_allocation = cpu_relative_alloc
         element.memory_relative_allocation = memory_relative_alloc
@@ -172,17 +172,17 @@ class QueueProxy(LiveTree):
 
     def update(self, current_time=None):
         if current_time is None:
-            current_time = self.mmmdrf_obj.current_time
+            current_time = self.sdrf_obj.current_time
         super(QueueProxy, self).update(current_time)
 
     def get_min(self, current_time=None):
         if current_time is None:
-            current_time = self.mmmdrf_obj.current_time
+            current_time = self.sdrf_obj.current_time
         return super(QueueProxy, self).get_min(current_time).name
 
     def pop(self, current_time=None):
         if current_time is None:
-            current_time = self.mmmdrf_obj.current_time
+            current_time = self.sdrf_obj.current_time
         element = super(QueueProxy, self).pop(current_time)
         self._idle_element(element)
         return element.name
@@ -192,5 +192,5 @@ class QueueProxy(LiveTree):
         self._idle_element(removed_element)
 
     def _idle_element(self, element):
-        element.update(self.mmmdrf_obj.current_time)
-        self.mmmdrf_obj.idle_users[element.name] = element
+        element.update(self.sdrf_obj.current_time)
+        self.sdrf_obj.idle_users[element.name] = element

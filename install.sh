@@ -9,8 +9,8 @@ pip install virtualenvwrapper"
 
 export WORKON_HOME=~/Envs
 source /usr/local/bin/virtualenvwrapper.sh
-mkvirtualenv mmmdrf
-workon mmmdrf
+mkvirtualenv sdrf
+workon sdrf
 pip install -r requirements.txt
 
 cd sdrf/helpers/c_live_tree

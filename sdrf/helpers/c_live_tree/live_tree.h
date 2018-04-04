@@ -16,7 +16,7 @@
 
 
 /*
- * Every element in the priority queue checks if in the future they are going to
+ * Every element in the tree checks if in the future they are going to
  * be switched with their right neighbor. If this is the case they calculate
  * when this is going to happen and add an event to the events set
  */

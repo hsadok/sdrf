@@ -4,7 +4,7 @@ from os import path
 import csv
 
 from sdrf.allocators.arrival.wdrf import WDRF
-from sdrf.allocators.arrival.sdrf import MMMDRF, Reserved3MDRF
+from sdrf.allocators.arrival.sdrf import SDRF, Reserved3MDRF
 from sdrf.helpers.file_name import FileName
 from sdrf.tasks import tasks_generator, save_from_deque, tasks_file_header
 from sdrf.tasks.system_utilization import SystemUtilization
@@ -67,7 +67,7 @@ def mmm_drf(tasks_file, saving_dir, resource_percentage, delta,
         allocator = Reserved3MDRF(system_resources, users_resources_dict,
                                   delta, start_time)
     else:
-        allocator = MMMDRF(system_resources, users_resources_dict, delta,
+        allocator = SDRF(system_resources, users_resources_dict, delta,
                            start_time)
 
     saving_file = path.join(saving_dir, saving_file)
