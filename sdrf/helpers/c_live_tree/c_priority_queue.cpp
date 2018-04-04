@@ -8,7 +8,7 @@
 
 #include "element.h"
 #include "priority_queue.h"
-#include "dynamic_priority_queue.h"
+#include "live_tree.h"
 
 struct QueueTimes {
   QueueTimes() : new_t(0), add_t(0), pop_t(0), get_min_t(0), cbegin_t(0), it_next_t(0),
@@ -81,7 +81,7 @@ struct QueueTimes {
 static std::chrono::high_resolution_clock::time_point ref_time;
 
 static QueueTimes priority_queue_times;
-static QueueTimes dynamic_priority_queue_times;
+static QueueTimes live_tree_times;
 
 extern "C" {
   typedef PriorityQueue::elements_set::const_iterator PriorityQueue_it;
@@ -208,12 +208,12 @@ extern "C" {
 
 
   LiveTree* LiveTree_new() {
-    dynamic_priority_queue_times = QueueTimes();
+    live_tree_times = QueueTimes();
     ref_time = std::chrono::high_resolution_clock::now();
 
     LiveTree* ptr = new LiveTree();
 
-    dynamic_priority_queue_times.new_t += std::chrono::high_resolution_clock::now() - ref_time;
+    live_tree_times.new_t += std::chrono::high_resolution_clock::now() - ref_time;
     return ptr;
   }
   void LiveTree_add(LiveTree* queue, Element* element) {
@@ -221,7 +221,7 @@ extern "C" {
 
     queue->add(*element);
 
-    dynamic_priority_queue_times.add_t += std::chrono::high_resolution_clock::now() - ref_time;
+    live_tree_times.add_t += std::chrono::high_resolution_clock::now() - ref_time;
   }
   Element* LiveTree_pop(LiveTree* queue,
                                     double current_time) {
@@ -229,7 +229,7 @@ extern "C" {
 
     Element* element = new Element(queue->pop(current_time));
 
-    dynamic_priority_queue_times.pop_t += std::chrono::high_resolution_clock::now() - ref_time;
+    live_tree_times.pop_t += std::chrono::high_resolution_clock::now() - ref_time;
     return element;
   }
   Element* LiveTree_get_min(LiveTree* queue,
@@ -238,7 +238,7 @@ extern "C" {
 
     Element* element = new Element(queue->get_min(current_time));
 
-    dynamic_priority_queue_times.get_min_t += std::chrono::high_resolution_clock::now() - ref_time;
+    live_tree_times.get_min_t += std::chrono::high_resolution_clock::now() - ref_time;
     return element;
   }
   LiveTree_it* LiveTree_cbegin(
@@ -247,7 +247,7 @@ extern "C" {
 
     LiveTree_it* it = new LiveTree_it(queue->cbegin());
 
-    dynamic_priority_queue_times.cbegin_t += std::chrono::high_resolution_clock::now() - ref_time;
+    live_tree_times.cbegin_t += std::chrono::high_resolution_clock::now() - ref_time;
     return it;
   }
   void LiveTree_it_next(LiveTree_it* it) {
@@ -255,7 +255,7 @@ extern "C" {
 
     ++(*it);
 
-    dynamic_priority_queue_times.it_next_t += std::chrono::high_resolution_clock::now() - ref_time;
+    live_tree_times.it_next_t += std::chrono::high_resolution_clock::now() - ref_time;
   }
   Element* LiveTree_get_element_from_it(
           LiveTree_it* it) {
@@ -263,7 +263,7 @@ extern "C" {
 
     Element* element = new Element((*it)->first);
 
-    dynamic_priority_queue_times.get_element_from_it_t += std::chrono::high_resolution_clock::now() - ref_time;
+    live_tree_times.get_element_from_it_t += std::chrono::high_resolution_clock::now() - ref_time;
     return element;
   }
   int LiveTree_it_is_end(LiveTree* queue,
@@ -272,7 +272,7 @@ extern "C" {
 
     bool is_end = *it == queue->cend();
 
-    dynamic_priority_queue_times.it_is_end_t += std::chrono::high_resolution_clock::now() - ref_time;
+    live_tree_times.it_is_end_t += std::chrono::high_resolution_clock::now() - ref_time;
     return is_end;
   }
   void LiveTree_delete_it(LiveTree_it* it) {
@@ -280,7 +280,7 @@ extern "C" {
 
     delete it;
 
-    dynamic_priority_queue_times.delete_it_t += std::chrono::high_resolution_clock::now() - ref_time;
+    live_tree_times.delete_it_t += std::chrono::high_resolution_clock::now() - ref_time;
   }
   Element* LiveTree_remove(LiveTree* queue,
                                        dpq_name_t name) {
@@ -288,7 +288,7 @@ extern "C" {
 
     Element* element = new Element(queue->remove(name));
 
-    dynamic_priority_queue_times.remove_t += std::chrono::high_resolution_clock::now() - ref_time;
+    live_tree_times.remove_t += std::chrono::high_resolution_clock::now() - ref_time;
     return element;
   }
   int LiveTree_empty(LiveTree* queue) {
@@ -296,7 +296,7 @@ extern "C" {
 
     bool is_empty = queue->empty();
 
-    dynamic_priority_queue_times.empty_t += std::chrono::high_resolution_clock::now() - ref_time;
+    live_tree_times.empty_t += std::chrono::high_resolution_clock::now() - ref_time;
     return is_empty;
   }
   int LiveTree_element_is_in(LiveTree* queue,
@@ -305,7 +305,7 @@ extern "C" {
 
     bool is_in = queue->element_is_in(name);
 
-    dynamic_priority_queue_times.element_is_in_t += std::chrono::high_resolution_clock::now() - ref_time;
+    live_tree_times.element_is_in_t += std::chrono::high_resolution_clock::now() - ref_time;
     return is_in;
   }
   void LiveTree_update(LiveTree* queue,
@@ -314,7 +314,7 @@ extern "C" {
 
     queue->update(current_time);
 
-    dynamic_priority_queue_times.update_t += std::chrono::high_resolution_clock::now() - ref_time;
+    live_tree_times.update_t += std::chrono::high_resolution_clock::now() - ref_time;
   }
   void LiveTree_string(LiveTree* queue, char* buffer,
                                    int max_size) {
@@ -322,20 +322,20 @@ extern "C" {
 
     std::strncpy(buffer, std::string(*queue).c_str(), max_size);
 
-    dynamic_priority_queue_times.string_t += std::chrono::high_resolution_clock::now() - ref_time;
+    live_tree_times.string_t += std::chrono::high_resolution_clock::now() - ref_time;
   }
   void LiveTree_delete(LiveTree* queue) {
     ref_time = std::chrono::high_resolution_clock::now();
 
     delete queue;
 
-    dynamic_priority_queue_times.delete_t += std::chrono::high_resolution_clock::now() - ref_time;
+    live_tree_times.delete_t += std::chrono::high_resolution_clock::now() - ref_time;
   }
   void LiveTree_print_stats(char* info, char* file_name) {
     int insert_count = LiveTree::get_insert_count();
     int update_count = LiveTree::get_update_count();
     int events_count = LiveTree::get_events_count();
-    dynamic_priority_queue_times.print_stats(info, file_name, insert_count, update_count, events_count);
+    live_tree_times.print_stats(info, file_name, insert_count, update_count, events_count);
   }
 
 

@@ -1,13 +1,13 @@
 // compile with:
-// g++ --std=c++11 -Wall -Wextra -pedantic -c test_dynamic_priority_queue.cpp
-// g++ --std=c++11 -Wall -Wextra -pedantic -o test_dynamic_priority_queue test_dynamic_priority_queue.o
+// g++ --std=c++11 -Wall -Wextra -pedantic -c test_live_tree.cpp
+// g++ --std=c++11 -Wall -Wextra -pedantic -o test_live_tree test_live_tree.o
 
 #include <iostream>
 #include <string>
 #include <cassert>
 #include <cmath>
 
-#include "../helpers/c_dynamic_priority_queue/priority_queue.h"
+#include "../helpers/c_live_tree/priority_queue.h"
 
 
 int main()

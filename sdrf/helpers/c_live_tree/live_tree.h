@@ -1,10 +1,10 @@
 //
-// Dynamic Priority Queue
+// Live Tree
 // Priority Queue with weights that change overtime in a predictive way
 //
 
-#ifndef DYNAMIC_PRIORITY_QUEUE_H
-#define DYNAMIC_PRIORITY_QUEUE_H
+#ifndef LIVE_TREE_H
+#define LIVE_TREE_H
 
 #include <string>
 #include <forward_list>
@@ -56,4 +56,4 @@ class LiveTree {
   void update_event(elements_map::iterator iter);
 };
 
-#endif // DYNAMIC_PRIORITY_QUEUE_H
+#endif // LIVE_TREE_H

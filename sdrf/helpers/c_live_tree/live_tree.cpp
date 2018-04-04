@@ -1,5 +1,5 @@
 //
-// Dynamic Priority Queue
+// Live Tree
 // Priority Queue with weights that change overtime in a predictive way
 //
 
@@ -14,7 +14,7 @@
 #include <stdexcept>
 
 #include "element.h"
-#include "dynamic_priority_queue.h"
+#include "live_tree.h"
 
 //#define LOGIC_CHECK
 

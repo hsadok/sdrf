@@ -13,7 +13,7 @@ mkvirtualenv mmmdrf
 workon mmmdrf
 pip install -r requirements.txt
 
-cd sdrf/helpers/c_dynamic_priority_queue
+cd sdrf/helpers/c_live_tree
 /usr/bin/env bash compile.sh
 
 cd -
