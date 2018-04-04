@@ -19,8 +19,8 @@ time_scale_multiplier = 1e6  # using seconds
 # time_scale_multiplier = 1000  # using milliseconds
 
 
-# 3M_DRF
-# the 3M allocation must only come into action when users already reached 1/n
+# SDRF
+# the SDRF allocation must only come into action when users already reached 1/n
 # of resource utilization for their dominant resource
 # there must be a separate credibility for each resource and user
 class SDRF(Arrival):
@@ -103,14 +103,14 @@ class SDRF(Arrival):
             print 'cpu: ',  u.cpu_credibility, 'memory: ', u.memory_credibility
 
 
-class Reserved3MDRF(SDRF):
+class ReservedSDRF(SDRF):
     def __init__(self, capacities, users_resources_dict, delta, start_time,
                  initial_credibilities=None, keep_history=False):
         """
         :param capacities: array with capacities for each resource
         :param users_resources_dict: dict with users resources user:[resources]
         """
-        super(Reserved3MDRF, self).__init__(capacities, users_resources_dict,
+        super(ReservedSDRF, self).__init__(capacities, users_resources_dict,
                                             delta, start_time,
                                             initial_credibilities,
                                             keep_history)
@@ -128,7 +128,7 @@ class Reserved3MDRF(SDRF):
 
     def _insert_user(self, user):
         self._insert_user_resources_heap(user)
-        super(Reserved3MDRF, self)._insert_user(user)
+        super(ReservedSDRF, self)._insert_user(user)
 
     def pick_task(self):
         def user_fulfills_request(task):
@@ -142,7 +142,7 @@ class Reserved3MDRF(SDRF):
             return None
 
         if picked_task is None:
-            picked_task = super(Reserved3MDRF, self).pick_task()
+            picked_task = super(ReservedSDRF, self).pick_task()
 
         return picked_task
 

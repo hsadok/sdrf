@@ -34,7 +34,7 @@ void PriorityQueue::add(Element element) {
   elements_name_mapper[element.name] = element_it;
 }
 
-Element PriorityQueue::pop(dpq_time_t current_time) {
+Element PriorityQueue::pop(lt_time_t current_time) {
   if (empty()) {
     throw std::out_of_range("PriorityQueue is empty");
   }
@@ -42,7 +42,7 @@ Element PriorityQueue::pop(dpq_time_t current_time) {
   return remove(elements_priority.begin()->name);
 }
 
-Element PriorityQueue::get_min(dpq_time_t current_time) {
+Element PriorityQueue::get_min(lt_time_t current_time) {
   if (empty()) {
     throw std::out_of_range("PriorityQueue is empty");
   }
@@ -58,7 +58,7 @@ PriorityQueue::elements_set::const_iterator PriorityQueue::cend() {
   return elements_priority.cend();
 }
 
-Element PriorityQueue::remove(const dpq_name_t& name) {
+Element PriorityQueue::remove(const lt_name_t& name) {
   if(name >= elements_name_mapper.size()) {
     throw std::runtime_error("Element not found: " + std::to_string(name) +
                " vector size: " + std::to_string(elements_name_mapper.size()));
@@ -78,7 +78,7 @@ bool PriorityQueue::empty() const {
   return elements_priority.empty();
 }
 
-bool PriorityQueue::element_is_in(const dpq_name_t& name) const {
+bool PriorityQueue::element_is_in(const lt_name_t& name) const {
   if(name >= elements_name_mapper.size()) {
     return false;
   }
@@ -101,7 +101,7 @@ PriorityQueue::operator std::string() const {
   return out_str;
 }
 
-void PriorityQueue::update(dpq_time_t current_time) {
+void PriorityQueue::update(lt_time_t current_time) {
   if (current_time == last_time) {
     return;
   }

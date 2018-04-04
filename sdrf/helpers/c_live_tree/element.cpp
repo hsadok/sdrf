@@ -12,7 +12,7 @@
 #include "element.h"
 
 
-Element::Element(const dpq_name_t& name, dpq_time_t update_time, double tau,
+Element::Element(const lt_name_t& name, lt_time_t update_time, double tau,
   double system_cpu, double cpu_credibility, double cpu_relative_allocation,
   double cpu_share, double system_memory, double memory_credibility,
   double memory_relative_allocation, double memory_share)
@@ -56,7 +56,7 @@ bool Element::operator==(const Element& rhs) const {
   return this->name == rhs.name;
 }
 
-void Element::update(dpq_time_t current_time) const {
+void Element::update(lt_time_t current_time) const {
   if (current_time == update_time) {
     return;
   }
@@ -72,7 +72,7 @@ void Element::update(dpq_time_t current_time) const {
   update_time = current_time;
 }
 
-dpq_time_t Element::get_switch_time(const Element& other_element) const {
+lt_time_t Element::get_switch_time(const Element& other_element) const {
   if (other_element.update_time > update_time) {
     update(other_element.update_time);
   } else {
@@ -81,8 +81,8 @@ dpq_time_t Element::get_switch_time(const Element& other_element) const {
 
   // first define self-intersections, these breaks will define the regimes;
   // for 2 resources there is a maximum of 3 regimes
-  dpq_time_t self_intersec = get_priority_intersection(cpu, memory);
-  dpq_time_t other_intersec = get_priority_intersection(other_element.cpu,
+  lt_time_t self_intersec = get_priority_intersection(cpu, memory);
+  lt_time_t other_intersec = get_priority_intersection(other_element.cpu,
                                                     other_element.memory);
 
   if (!std::isfinite(self_intersec)) {
@@ -93,15 +93,15 @@ dpq_time_t Element::get_switch_time(const Element& other_element) const {
     other_intersec = -2;
   }
 
-  dpq_time_t min_intersec = std::min(self_intersec, other_intersec);
-  dpq_time_t max_intersec = std::max(self_intersec, other_intersec);
+  lt_time_t min_intersec = std::min(self_intersec, other_intersec);
+  lt_time_t max_intersec = std::max(self_intersec, other_intersec);
 
   if (min_intersec <= 0) {
     min_intersec = max_intersec;
   }
 
-  dpq_time_t t;
-  dpq_time_t intersection;
+  lt_time_t t;
+  lt_time_t intersection;
   // regime 1: t in (0, min_intersec)
   if (min_intersec > 0) {
     t = update_time + min_intersec/2;
@@ -159,7 +159,7 @@ dpq_time_t Element::get_switch_time(const Element& other_element) const {
   return -1;
 }
 
-dpq_name_t Element::get_name() const {
+lt_name_t Element::get_name() const {
   return name;
 }
 
@@ -175,7 +175,7 @@ long double Element::get_priority() const {
   return std::max(calculate_priority(cpu), calculate_priority(memory));
 }
 
-dpq_time_t Element::get_update_time() const {
+lt_time_t Element::get_update_time() const {
   return update_time;
 }
 
@@ -206,17 +206,17 @@ Element::Resource::Resource(long double system_total, long double credibility,
    : system_total(system_total), credibility(credibility),
      relative_allocation(relative_allocation), share(share) { }
 
-long double Element::calculate_credibility(dpq_time_t current_time,
+long double Element::calculate_credibility(lt_time_t current_time,
     long double previous_credibility, long double relative_allocation,
     long double share) const {
-  dpq_time_t delta_t = current_time - update_time;
+  lt_time_t delta_t = current_time - update_time;
   long double alpha = 1 - std::exp(-delta_t/tau);
   return previous_credibility + alpha * (
     std::max<long double>(relative_allocation-share, 0) - previous_credibility
   );
 }
 
-dpq_time_t Element::get_priority_intersection(const Element::Resource& r1,
+lt_time_t Element::get_priority_intersection(const Element::Resource& r1,
                                               const Element::Resource& r2)const{
 //  return tau * std::log(
 //          0.5 * (1 + (r1.system_total * r2.credibility
@@ -236,7 +236,7 @@ dpq_time_t Element::get_priority_intersection(const Element::Resource& r1,
 }
 
 long double Element::calculate_priority(const Element::Resource& res,
-                                   const dpq_time_t time) const {
+                                   const lt_time_t time) const {
   long double credibility = res.credibility;
   if (time != 0) {
     credibility = calculate_credibility(time, credibility,
@@ -246,13 +246,13 @@ long double Element::calculate_priority(const Element::Resource& res,
 }
 
 long double Element::get_priority_derivative(const Element::Resource& r,
-    dpq_time_t time_delta) const {
+    lt_time_t time_delta) const {
   return (r.relative_allocation - r.credibility)/(r.system_total * tau)
          * std::exp(-time_delta/tau);
 }
 
 const Element::Resource& Element::get_dominant_resource(
-        const dpq_time_t time) const {
+        const lt_time_t time) const {
   if (calculate_priority(cpu, time) < calculate_priority(memory, time)) {
     return memory;
   }

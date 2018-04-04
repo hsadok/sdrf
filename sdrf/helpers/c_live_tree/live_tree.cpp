@@ -32,7 +32,7 @@ LiveTree::LiveTree() {
 
 void LiveTree::add(Element element) {
   LiveTree::insert_count++;
-  dpq_name_t element_name = element.name;
+  lt_name_t element_name = element.name;
   if (element_is_in(element_name)) {
     throw std::runtime_error("Element already on LiveTree");
   }
@@ -63,7 +63,7 @@ void LiveTree::add(Element element) {
   update_event(element_it);
 }
 
-Element LiveTree::pop(dpq_time_t current_time) {
+Element LiveTree::pop(lt_time_t current_time) {
   if (empty()) {
     throw std::out_of_range("LiveTree is empty");
   }
@@ -71,7 +71,7 @@ Element LiveTree::pop(dpq_time_t current_time) {
   return remove((elements_priority.begin()->first).name);
 }
 
-Element LiveTree::get_min(dpq_time_t current_time) {
+Element LiveTree::get_min(lt_time_t current_time) {
   if (empty()) {
     throw std::out_of_range("LiveTree is empty");
   }
@@ -90,7 +90,7 @@ LiveTree::elements_map::const_iterator LiveTree::cend(){
   return elements_priority.cend();
 }
 
-Element LiveTree::remove(const dpq_name_t& name) {
+Element LiveTree::remove(const lt_name_t& name) {
   if(name >= elements_name_mapper.size()) {
     throw std::runtime_error("Element not found: " + std::to_string(name) +
                " vector size: " + std::to_string(elements_name_mapper.size()));
@@ -120,7 +120,7 @@ bool LiveTree::empty() const {
   return elements_priority.empty();
 }
 
-bool LiveTree::element_is_in(const dpq_name_t& name) const {
+bool LiveTree::element_is_in(const lt_name_t& name) const {
   if(name >= elements_name_mapper.size()) {
     return false;
   }
@@ -157,7 +157,7 @@ void LiveTree::check_order() {
   }
 }
 
-void LiveTree::update(dpq_time_t current_time) {
+void LiveTree::update(lt_time_t current_time) {
   LiveTree::update_count++;
   if (last_time == current_time) {
     return;
@@ -211,7 +211,7 @@ void LiveTree::update_event(elements_map::iterator iter) {
   }
 
   if (std::next(iter) != elements_priority.end()) {
-    dpq_time_t switch_time =iter->first.get_switch_time(std::next(iter)->first);
+    lt_time_t switch_time =iter->first.get_switch_time(std::next(iter)->first);
     if (switch_time >= 0) {
       auto return_pair = events.emplace(switch_time, iter->first.name);
       #ifdef LOGIC_CHECK

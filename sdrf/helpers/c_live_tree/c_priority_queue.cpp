@@ -157,7 +157,7 @@ extern "C" {
 
     priority_queue_times.delete_it_t += std::chrono::high_resolution_clock::now() - ref_time;
   }
-  Element* PriorityQueue_remove(PriorityQueue* queue, dpq_name_t name) {
+  Element* PriorityQueue_remove(PriorityQueue* queue, lt_name_t name) {
     ref_time = std::chrono::high_resolution_clock::now();
 
     Element* element = new Element(queue->remove(name));
@@ -173,7 +173,7 @@ extern "C" {
     priority_queue_times.empty_t += std::chrono::high_resolution_clock::now() - ref_time;
     return is_empty;
   }
-  int PriorityQueue_element_is_in(PriorityQueue* queue, dpq_name_t name) {
+  int PriorityQueue_element_is_in(PriorityQueue* queue, lt_name_t name) {
     ref_time = std::chrono::high_resolution_clock::now();
 
     bool is_in = queue->element_is_in(name);
@@ -283,7 +283,7 @@ extern "C" {
     live_tree_times.delete_it_t += std::chrono::high_resolution_clock::now() - ref_time;
   }
   Element* LiveTree_remove(LiveTree* queue,
-                                       dpq_name_t name) {
+                                       lt_name_t name) {
     ref_time = std::chrono::high_resolution_clock::now();
 
     Element* element = new Element(queue->remove(name));
@@ -300,7 +300,7 @@ extern "C" {
     return is_empty;
   }
   int LiveTree_element_is_in(LiveTree* queue,
-                                         dpq_name_t name) {
+                                         lt_name_t name) {
     ref_time = std::chrono::high_resolution_clock::now();
 
     bool is_in = queue->element_is_in(name);
@@ -339,7 +339,7 @@ extern "C" {
   }
 
 
-  Element* Element_new(dpq_name_t name, double update_time, double tau,
+  Element* Element_new(lt_name_t name, double update_time, double tau,
                        double system_cpu, double cpu_credibility,
                        double cpu_relative_allocation, double cpu_share,
                        double system_memory, double memory_credibility,
@@ -352,7 +352,7 @@ extern "C" {
   void Element_update(Element* element, double current_time) {
     element->update(current_time);
   }
-  dpq_name_t Element_get_name(Element* element) {
+  lt_name_t Element_get_name(Element* element) {
     return element->get_name();
   }
   double Element_get_cpu_credibility(Element* element) {

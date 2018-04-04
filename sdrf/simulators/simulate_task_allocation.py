@@ -4,7 +4,7 @@ from os import path
 import csv
 
 from sdrf.allocators.arrival.wdrf import WDRF
-from sdrf.allocators.arrival.sdrf import SDRF, Reserved3MDRF
+from sdrf.allocators.arrival.sdrf import SDRF, ReservedSDRF
 from sdrf.helpers.file_name import FileName
 from sdrf.tasks import tasks_generator, save_from_deque, tasks_file_header
 from sdrf.tasks.system_utilization import SystemUtilization
@@ -20,9 +20,9 @@ def wdrf(tasks_file, saving_dir, resource_percentage, use_weights=False):
         for user in system_utilization.users_cpu_mean.keys():
             users_weights_dict[user] = [
                 system_utilization.users_cpu_mean[user] /
-                system_utilization.cpu_mean,
+                    system_utilization.cpu_mean,
                 system_utilization.users_memory_mean[user] /
-                system_utilization.memory_mean
+                    system_utilization.memory_mean
             ]
     else:
         users_weights_dict = None
@@ -36,7 +36,7 @@ def wdrf(tasks_file, saving_dir, resource_percentage, use_weights=False):
     simulate_task_allocation(allocator, tasks_file, saving_file)
 
 
-def mmm_drf(tasks_file, saving_dir, resource_percentage, delta,
+def sdrf(tasks_file, saving_dir, resource_percentage, delta,
             same_share=False, reserved=False):
     print 'resource percentage: ', resource_percentage
     print 'delta: ', delta
@@ -45,7 +45,7 @@ def mmm_drf(tasks_file, saving_dir, resource_percentage, delta,
                         system_utilization.memory_mean * resource_percentage]
 
     users_resources_dict = {}
-    saving_file = FileName('task_sim', '3mdrf', resource_percentage, delta,
+    saving_file = FileName('task_sim', 'sdrf', resource_percentage, delta,
                            same_share=same_share, reserved=reserved).name
 
     if same_share:
@@ -64,7 +64,7 @@ def mmm_drf(tasks_file, saving_dir, resource_percentage, delta,
         start_time = int(row[0])
 
     if reserved:
-        allocator = Reserved3MDRF(system_resources, users_resources_dict,
+        allocator = ReservedSDRF(system_resources, users_resources_dict,
                                   delta, start_time)
     else:
         allocator = SDRF(system_resources, users_resources_dict, delta,

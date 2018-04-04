@@ -7,28 +7,28 @@
 #include <string>
 #include <cmath>
 
-typedef unsigned dpq_name_t;
-typedef long double dpq_time_t;
+typedef unsigned lt_name_t;
+typedef long double lt_time_t;
 
 
 class Element {
  public:
-  const dpq_name_t name;
+  const lt_name_t name;
   // Warning: here the higher the credibility, the worse it is
-  Element(const dpq_name_t& name, dpq_time_t update_time, double tau,
+  Element(const lt_name_t& name, lt_time_t update_time, double tau,
           double system_cpu, double cpu_credibility,
           double cpu_relative_allocation, double cpu_share,
           double system_memory, double memory_credibility,
           double memory_relative_allocation, double memory_share);
   bool operator<(const Element& rhs) const;
   bool operator==(const Element& rhs) const;
-  void update(dpq_time_t current_time) const;
+  void update(lt_time_t current_time) const;
   long double get_switch_time(const Element& other_element) const;
-  dpq_name_t get_name() const;
+  lt_name_t get_name() const;
   long double get_cpu_credibility() const;
   long double get_memory_credibility() const;
   long double get_priority() const;
-  dpq_time_t get_update_time() const;
+  lt_time_t get_update_time() const;
   long double get_cpu_relative_allocation() const;
   long double get_memory_relative_allocation() const;
   void set_cpu_relative_allocation(long double cpu_relative_allocation);
@@ -44,19 +44,19 @@ class Element {
     long double relative_allocation;
     long double share;
   };
-  mutable dpq_time_t update_time;
+  mutable lt_time_t update_time;
   const long double tau;
   Resource cpu;
   Resource memory;
 
-  long double calculate_credibility(dpq_time_t current_time,
+  long double calculate_credibility(lt_time_t current_time,
     long double previous_credibility, long double relative_allocation,
     long double share) const;
-  dpq_time_t get_priority_intersection(const Resource& r1,
+  lt_time_t get_priority_intersection(const Resource& r1,
                                        const Resource& r2) const;
-  long double calculate_priority(const Resource& res, const dpq_time_t time=0) const;
-  long double get_priority_derivative(const Resource& r, dpq_time_t time_delta) const;
-  const Resource& get_dominant_resource(const dpq_time_t time=0) const;
+  long double calculate_priority(const Resource& res, const lt_time_t time=0) const;
+  long double get_priority_derivative(const Resource& r, lt_time_t time_delta) const;
+  const Resource& get_dominant_resource(const lt_time_t time=0) const;
   long double get_overused_resource(const Resource& r) const;
 };
 
@@ -64,7 +64,7 @@ namespace std {
   template<>
   struct hash<Element> {
     std::size_t operator()(const Element& e) const {
-      return std::hash<dpq_name_t>{}(e.name);
+      return std::hash<lt_name_t>{}(e.name);
     }
   };
 }

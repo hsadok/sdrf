@@ -22,21 +22,21 @@
  */
 class LiveTree {
  public:
-  typedef std::set<std::pair<dpq_time_t, dpq_name_t>> events_set; //time, name
+  typedef std::set<std::pair<lt_time_t, lt_name_t>> events_set; //time, name
   typedef std::map<Element, events_set::iterator> elements_map; //element, event
   typedef std::vector<elements_map::iterator> elements_name_map;
 
   LiveTree();
   void add(const Element element);
-  Element pop(dpq_time_t current_time);
-  Element get_min(dpq_time_t current_time);
+  Element pop(lt_time_t current_time);
+  Element get_min(lt_time_t current_time);
   elements_map::const_iterator cbegin();
   elements_map::const_iterator cend();
-  Element remove(const dpq_name_t& name);
+  Element remove(const lt_name_t& name);
   bool empty() const;
-  bool element_is_in(const dpq_name_t& name) const;
+  bool element_is_in(const lt_name_t& name) const;
   operator std::string() const;
-  void update(dpq_time_t current_time);
+  void update(lt_time_t current_time);
   void check_order();
 
   static int get_insert_count();
@@ -44,7 +44,7 @@ class LiveTree {
   static int get_events_count();
 
  private:
-  dpq_time_t last_time;
+  lt_time_t last_time;
   events_set events;
   elements_map elements_priority; // sort elements and also link to events
   elements_name_map elements_name_mapper;

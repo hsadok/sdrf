@@ -90,13 +90,13 @@ def simulate_allocation(*args, **kwargs):
                                               dir_okay=False, readable=True))
 @click.argument('saving_path', type=click.Path(file_okay=True, dir_okay=True,
                                                writable=True), required=False)
-@click.option('--allocator', '-a', type=click.Choice(['wdrf', '3mdrf']),
-              default='3mdrf', help='Allocator to use (defaults to 3mdrf).')
+@click.option('--allocator', '-a', type=click.Choice(['wdrf', 'sdrf']),
+              default='sdrf', help='Allocator to use (defaults to sdrf).')
 @click.option('--config', '-c', type=click.Path(exists=True, file_okay=True,
                                                 dir_okay=False, readable=True),
               help='Configuration file to use.')
 @click.option('--delta', '-d', type=click.FLOAT, multiple=True,
-              help='Delta to be used by 3M-DRF. When more than one value is pr'
+              help='Delta to be used by SDRF. When more than one value is pr'
                    'ovided, a simulation is run for each.')
 @click.option('--resource', '-r', type=click.FLOAT, multiple=True,
               help='Percentage of resources used by the user provided in the s'
@@ -108,11 +108,11 @@ def simulate_allocation(*args, **kwargs):
               help='This makes the resource option be used only for the amount'
                    ' of resources in the system instead of for each user. In t'
                    'his mode all users get the same share (0). This only make'
-                   's sense for 3MDRF.')
+                   's sense for SDRF.')
 @click.option('--reserved', is_flag=True,
-              help='Enables the 2 stages queue for 3MDRF. First stage uses a D'
+              help='Enables the 2 stages queue for SDRF. First stage uses a D'
                    'RF queue and tries to enforce reserved resources for each'
-                   ' user. The second stage is a regular 3M queue.')
+                   ' user. The second stage is a regular DRF queue.')
 @click.option('--weights', '-w', is_flag=True,
               help='This makes DRF act as wDRF using weights proportional to u'
                    'sers resources.')
@@ -121,7 +121,7 @@ def simulate_task_allocation(tasks_file, saving_path, allocator, config, delta,
     if (not config) and (not resource):
         print('Must provide a config file or at least one resource percentage')
         sys.exit(1)
-    if allocator == '3mdrf' and (not config) and (not delta):
+    if allocator == 'sdrf' and (not config) and (not delta):
         print('Must provide a config file or at least one delta')
         sys.exit(2)
 
@@ -130,7 +130,7 @@ def simulate_task_allocation(tasks_file, saving_path, allocator, config, delta,
         conf_parser.read(config)
         try:
             resource = json.loads(conf_parser.get('config', 'resources'))
-            if allocator == '3mdrf':
+            if allocator == 'sdrf':
                 delta = json.loads(conf_parser.get('config', 'deltas'))
         except configparser.NoOptionError as e:
             print ('No option "%s" found in the config file.' % e.option)
@@ -141,8 +141,8 @@ def simulate_task_allocation(tasks_file, saving_path, allocator, config, delta,
     if allocator == 'wdrf':
         from sdrf.simulators.simulate_task_allocation import wdrf as sim
         arg_iterator = product([tasks_file], [saving_path], resource,[weights])
-    else:  # 3m-drf
-        from sdrf.simulators.simulate_task_allocation import mmm_drf as sim
+    else:  # sdrf
+        from sdrf.simulators.simulate_task_allocation import sdrf as sim
         arg_iterator = product([tasks_file], [saving_path], resource, delta,
                                [same_share], [reserved])
     for arg in arg_iterator:
