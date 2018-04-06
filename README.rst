@@ -1,10 +1,10 @@
 Stateful Dominant Resource Fairness
 ===================================
 
-This repository contains source code of the discrete-event tasks simulator used
-in the SDRF paper. It also includes an implementation of
+This repository contains the source code of the discrete-event tasks simulator
+used in the SDRF paper. It also includes an implementation of
 `DRF <sdrf/allocators/wdrf.py>`_ and `SDRF <sdrf/allocators/sdrf.py>`_ that can
-be used with the simulator. Moreover the SDRF implementation uses a
+be used with the simulator. Moreover, the SDRF implementation uses a
 `live tree <sdrf/helpers/c_live_tree>`_ written in C++11.
 
 Download and Install Dependencies
@@ -136,4 +136,3 @@ command. Usage::
 
 where ``DATASET_DIR`` is the directory containing the Google cluster data and
 ``SAVING_FILE`` is the name of the output file.
-
