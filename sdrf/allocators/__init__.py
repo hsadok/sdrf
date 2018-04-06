@@ -4,7 +4,7 @@ from collections import defaultdict, deque
 
 import numpy as np
 
-from sdrf.allocators.sdrf import PriorityQueue
+from ..helpers.priority_queue import PriorityQueue
 
 
 class Task(object):
@@ -111,7 +111,6 @@ class Arrival(object):
                 self.current_time = task.submit_time
             self._insert_user(task.user)
             self.users_queues[task.user].append(task)
-        self.print_stats('after last task arrival')
         self._finish_tasks_until(simulation_limit)
 
     def _finish_tasks_until(self, next_time):

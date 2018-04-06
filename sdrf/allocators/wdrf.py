@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-from sdrf.allocators import Arrival, Task
-from sdrf.helpers.priority_queue import PriorityQueue
+from . import Arrival, Task
+from ..helpers.priority_queue import PriorityQueue
 
 
 # arrival allocations are simpler, they just decide which task to run based on

@@ -13,12 +13,12 @@
 
 
 Element::Element(const lt_name_t& name, lt_time_t update_time, double tau,
-  double system_cpu, double cpu_credibility, double cpu_relative_allocation,
-  double cpu_share, double system_memory, double memory_credibility,
+  double system_cpu, double cpu_commitment, double cpu_relative_allocation,
+  double cpu_share, double system_memory, double memory_commitment,
   double memory_relative_allocation, double memory_share)
   : name(name), update_time(update_time), tau(tau),
-    cpu(system_cpu, cpu_credibility, cpu_relative_allocation, cpu_share),
-    memory(system_memory, memory_credibility, memory_relative_allocation,
+    cpu(system_cpu, cpu_commitment, cpu_relative_allocation, cpu_share),
+    memory(system_memory, memory_commitment, memory_relative_allocation,
            memory_share)
   { }
 
@@ -63,9 +63,9 @@ void Element::update(lt_time_t current_time) const {
   if (current_time < update_time) {
     throw std::runtime_error("Can't update Element to the past");
   }
-  cpu.credibility = calculate_credibility(current_time, cpu.credibility,
+  cpu.commitment = calculate_commitment(current_time, cpu.commitment,
                                           cpu.relative_allocation, cpu.share);
-  memory.credibility = calculate_credibility(current_time, memory.credibility,
+  memory.commitment = calculate_commitment(current_time, memory.commitment,
                                              memory.relative_allocation,
                                              memory.share);
 
@@ -163,12 +163,12 @@ lt_name_t Element::get_name() const {
   return name;
 }
 
-long double Element::get_cpu_credibility() const {
-  return cpu.credibility;
+long double Element::get_cpu_commitment() const {
+  return cpu.commitment;
 }
 
-long double Element::get_memory_credibility() const {
-  return memory.credibility;
+long double Element::get_memory_commitment() const {
+  return memory.commitment;
 }
 
 long double Element::get_priority() const {
@@ -201,26 +201,26 @@ Element::operator std::string() const {
   return std::to_string(name) + "(" + priority_out_stream.str() + ")";
 }
 
-Element::Resource::Resource(long double system_total, long double credibility,
+Element::Resource::Resource(long double system_total, long double commitment,
    long double relative_allocation, long double share)
-   : system_total(system_total), credibility(credibility),
+   : system_total(system_total), commitment(commitment),
      relative_allocation(relative_allocation), share(share) { }
 
-long double Element::calculate_credibility(lt_time_t current_time,
-    long double previous_credibility, long double relative_allocation,
+long double Element::calculate_commitment(lt_time_t current_time,
+    long double previous_commitment, long double relative_allocation,
     long double share) const {
   lt_time_t delta_t = current_time - update_time;
   long double alpha = 1 - std::exp(-delta_t/tau);
-  return previous_credibility + alpha * (
-    std::max<long double>(relative_allocation-share, 0) - previous_credibility
+  return previous_commitment + alpha * (
+    std::max<long double>(relative_allocation-share, 0) - previous_commitment
   );
 }
 
 lt_time_t Element::get_priority_intersection(const Element::Resource& r1,
                                               const Element::Resource& r2)const{
 //  return tau * std::log(
-//          0.5 * (1 + (r1.system_total * r2.credibility
-//                      - r2.system_total * r1.credibility) /
+//          0.5 * (1 + (r1.system_total * r2.commitment
+//                      - r2.system_total * r1.commitment) /
 //                     (r2.system_total * r1.relative_allocation
 //                      - r1.system_total * r2.relative_allocation)
 //                )
@@ -228,8 +228,8 @@ lt_time_t Element::get_priority_intersection(const Element::Resource& r1,
     long double overused_r1 = get_overused_resource(r1);
     long double overused_r2 = get_overused_resource(r2);
     return tau * std::log(
-      (r2.system_total*(overused_r1 - r1.credibility)
-      - r1.system_total * (overused_r2 - r2.credibility)) /
+      (r2.system_total*(overused_r1 - r1.commitment)
+      - r1.system_total * (overused_r2 - r2.commitment)) /
       (r2.system_total*(overused_r1 + r1.relative_allocation)
       - r1.system_total*(overused_r2 + r2.relative_allocation))
     );
@@ -237,17 +237,17 @@ lt_time_t Element::get_priority_intersection(const Element::Resource& r1,
 
 long double Element::calculate_priority(const Element::Resource& res,
                                    const lt_time_t time) const {
-  long double credibility = res.credibility;
+  long double commitment = res.commitment;
   if (time != 0) {
-    credibility = calculate_credibility(time, credibility,
+    commitment = calculate_commitment(time, commitment,
                                         res.relative_allocation, res.share);
   }
-  return (res.relative_allocation + credibility) / res.system_total;
+  return (res.relative_allocation + commitment) / res.system_total;
 }
 
 long double Element::get_priority_derivative(const Element::Resource& r,
     lt_time_t time_delta) const {
-  return (r.relative_allocation - r.credibility)/(r.system_total * tau)
+  return (r.relative_allocation - r.commitment)/(r.system_total * tau)
          * std::exp(-time_delta/tau);
 }
 

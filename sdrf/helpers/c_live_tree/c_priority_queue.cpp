@@ -340,13 +340,13 @@ extern "C" {
 
 
   Element* Element_new(lt_name_t name, double update_time, double tau,
-                       double system_cpu, double cpu_credibility,
+                       double system_cpu, double cpu_commitment,
                        double cpu_relative_allocation, double cpu_share,
-                       double system_memory, double memory_credibility,
+                       double system_memory, double memory_commitment,
                        double memory_relative_allocation, double memory_share){
-    return new Element(name, update_time, tau, system_cpu, cpu_credibility,
+    return new Element(name, update_time, tau, system_cpu, cpu_commitment,
                        cpu_relative_allocation, cpu_share, system_memory,
-                       memory_credibility, memory_relative_allocation,
+                       memory_commitment, memory_relative_allocation,
                        memory_share);
   }
   void Element_update(Element* element, double current_time) {
@@ -355,11 +355,11 @@ extern "C" {
   lt_name_t Element_get_name(Element* element) {
     return element->get_name();
   }
-  double Element_get_cpu_credibility(Element* element) {
-    return element->get_cpu_credibility();
+  double Element_get_cpu_commitment(Element* element) {
+    return element->get_cpu_commitment();
   }
-  double Element_get_memory_credibility(Element* element) {
-    return element->get_memory_credibility();
+  double Element_get_memory_commitment(Element* element) {
+    return element->get_memory_commitment();
   }
   double Element_get_priority(Element* element) {
     return element->get_priority();

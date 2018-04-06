@@ -2,7 +2,7 @@
 echo "Type the root password"
 su root -c "\
 apt-get update && \
-apt-get install -y git libfreetype6-dev python-dev python-pip python-tk htop parallel tmux vim && \
+apt-get install -y git python-dev python-pip htop parallel tmux vim && \
 \
 pip install virtualenv && \
 pip install virtualenvwrapper"

@@ -2,11 +2,9 @@
 import numpy as np
 from math import log
 
-from sdrf.allocators import Arrival, Task
-from sdrf.helpers.priority_queue import PriorityQueue
-
-from sdrf.helpers.live_tree import LiveTree, \
-    Element
+from . import Arrival, Task
+from ..helpers.priority_queue import PriorityQueue
+from ..helpers.live_tree import LiveTree, Element
 
 
 # Using those indexes make stuff less generic, but generality was kinda
@@ -22,10 +20,10 @@ time_scale_multiplier = 1e6  # using seconds
 # SDRF
 # the SDRF allocation must only come into action when users already reached 1/n
 # of resource utilization for their dominant resource
-# there must be a separate credibility for each resource and user
+# there must be a separate commitment for each resource and user
 class SDRF(Arrival):
     def __init__(self, capacities, users_resources_dict, delta, start_time,
-                 initial_credibilities=None, keep_history=False):
+                 initial_commitments=None, keep_history=False):
         """
         :param capacities: array with capacities for each resource
         :param users_resources_dict: dict with users resources user:[resources]
@@ -47,10 +45,10 @@ class SDRF(Arrival):
         else:
             self.tau = -1.0 * time_scale_multiplier/log(delta)
 
-        if initial_credibilities is None:
-            credibilities = np.zeros((self.num_users, self.num_resources))
+        if initial_commitments is None:
+            commitments = np.zeros((self.num_users, self.num_resources))
         else:
-            credibilities = np.array(initial_credibilities)
+            commitments = np.array(initial_commitments)
 
         self.idle_users = {}
         for user in xrange(num_users):
@@ -58,8 +56,8 @@ class SDRF(Arrival):
             mem_relativ = - self._user_resources[user][memory_index]
             system_cpu = self._capacities[cpu_index]
             system_mem = self._capacities[memory_index]
-            cred_cpu = credibilities[user][cpu_index]
-            cred_mem = credibilities[user][memory_index]
+            cred_cpu = commitments[user][cpu_index]
+            cred_mem = commitments[user][memory_index]
             cpu_share = system_cpu / num_users
             mem_share = system_mem / num_users
 
@@ -69,25 +67,25 @@ class SDRF(Arrival):
                                             cpu_share, system_mem, cred_mem,
                                             mem_relativ, mem_share)
 
-        self.user_credibilities_queue = QueueProxy(self)
+        self.user_commitments_queue = QueueProxy(self)
 
     def _insert_user(self, user):
         cpu_relative_allocation = self.allocations[user][cpu_index] - \
                                   self._user_resources[user][cpu_index]
         memory_relative_allocation = self.allocations[user][memory_index] - \
                                      self._user_resources[user][memory_index]
-        self.user_credibilities_queue.add(user, cpu_relative_allocation,
+        self.user_commitments_queue.add(user, cpu_relative_allocation,
                                           memory_relative_allocation)
 
     def pick_task(self):
-        return self._pick_from_queue(self.user_credibilities_queue)
+        return self._pick_from_queue(self.user_commitments_queue)
 
     def finish_task(self, task):
         # When we reinsert the user there are basically 2 possibilities: The
-        # first is when the user is idle, when we reinsert, their credibility
+        # first is when the user is idle, when we reinsert, their commitment
         # will be updated. The second is when the user is not idle (already in
         # the queue), by calling _insert_user the user is removed and
-        # reinserted with the new credibility
+        # reinserted with the new commitment
         self._insert_user(task.user)
 
     def print_stats(self, extra_info=None):
@@ -98,21 +96,18 @@ class SDRF(Arrival):
         if extra_info is not None:
             info_dict['extra_info'] = extra_info
         QueueProxy.print_stats('time_stats.txt', info_dict)
-        print 'credibilities: '
-        for u in self.idle_users.values():
-            print 'cpu: ',  u.cpu_credibility, 'memory: ', u.memory_credibility
 
 
 class ReservedSDRF(SDRF):
     def __init__(self, capacities, users_resources_dict, delta, start_time,
-                 initial_credibilities=None, keep_history=False):
+                 initial_commitments=None, keep_history=False):
         """
         :param capacities: array with capacities for each resource
         :param users_resources_dict: dict with users resources user:[resources]
         """
         super(ReservedSDRF, self).__init__(capacities, users_resources_dict,
                                             delta, start_time,
-                                            initial_credibilities,
+                                            initial_commitments,
                                             keep_history)
 
         self._user_resources_queue = PriorityQueue(np.zeros(self.num_users))
@@ -147,7 +142,7 @@ class ReservedSDRF(SDRF):
         return picked_task
 
 
-# This class has 2 main purposes, to make sure the credibility remains up to
+# This class has 2 main purposes, to make sure the commitment remains up to
 # date when the user is removed and to guarantee that only the name goes out
 class QueueProxy(LiveTree):
     def __init__(self, sdrf_obj):

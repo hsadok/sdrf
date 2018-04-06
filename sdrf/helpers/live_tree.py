@@ -19,8 +19,8 @@ lib.LiveTree_remove.restype = ct.c_void_p
 lib.LiveTree_cbegin.restype = ct.c_void_p
 lib.LiveTree_get_element_from_it.restype = ct.c_void_p
 lib.Element_new.restype = ct.c_void_p
-lib.Element_get_cpu_credibility.restype = ct.c_double
-lib.Element_get_memory_credibility.restype = ct.c_double
+lib.Element_get_cpu_commitment.restype = ct.c_double
+lib.Element_get_memory_commitment.restype = ct.c_double
 lib.Element_get_cpu_relative_allocation.restype = ct.c_double
 lib.Element_get_memory_relative_allocation.restype = ct.c_double
 lib.Element_get_priority.restype = ct.c_double
@@ -178,15 +178,15 @@ class LiveTree(object):
 
 class Element(object):
     def __init__(self, name=None, update_time=None, tau=None, system_cpu=None,
-                 cpu_credibility=None, cpu_relative_allocation=None,
-                 cpu_share=None, system_memory=None, memory_credibility=None,
+                 cpu_commitment=None, cpu_relative_allocation=None,
+                 cpu_share=None, system_memory=None, memory_commitment=None,
                  memory_relative_allocation=None, memory_share=None, obj=None):
         if obj is None:
             self.obj = ct.c_void_p(lib.Element_new(
                 name, ct.c_double(update_time), ct.c_double(tau),
-                ct.c_double(system_cpu), ct.c_double(cpu_credibility),
+                ct.c_double(system_cpu), ct.c_double(cpu_commitment),
                 ct.c_double(cpu_relative_allocation), ct.c_double(cpu_share),
-                ct.c_double(system_memory), ct.c_double(memory_credibility),
+                ct.c_double(system_memory), ct.c_double(memory_commitment),
                 ct.c_double(memory_relative_allocation),
                 ct.c_double(memory_share))
             )
@@ -212,12 +212,12 @@ class Element(object):
         return lib.Element_get_name(self.obj)
 
     @property
-    def cpu_credibility(self):
-        return ct.c_double(lib.Element_get_cpu_credibility(self.obj))
+    def cpu_commitment(self):
+        return ct.c_double(lib.Element_get_cpu_commitment(self.obj))
 
     @property
-    def memory_credibility(self):
-        return ct.c_double(lib.Element_get_memory_credibility(self.obj))
+    def memory_commitment(self):
+        return ct.c_double(lib.Element_get_memory_commitment(self.obj))
 
     @property
     def priority(self):

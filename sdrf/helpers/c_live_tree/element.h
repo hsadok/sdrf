@@ -14,19 +14,19 @@ typedef long double lt_time_t;
 class Element {
  public:
   const lt_name_t name;
-  // Warning: here the higher the credibility, the worse it is
+  // Warning: here the higher the commitment, the worse it is
   Element(const lt_name_t& name, lt_time_t update_time, double tau,
-          double system_cpu, double cpu_credibility,
+          double system_cpu, double cpu_commitment,
           double cpu_relative_allocation, double cpu_share,
-          double system_memory, double memory_credibility,
+          double system_memory, double memory_commitment,
           double memory_relative_allocation, double memory_share);
   bool operator<(const Element& rhs) const;
   bool operator==(const Element& rhs) const;
   void update(lt_time_t current_time) const;
   long double get_switch_time(const Element& other_element) const;
   lt_name_t get_name() const;
-  long double get_cpu_credibility() const;
-  long double get_memory_credibility() const;
+  long double get_cpu_commitment() const;
+  long double get_memory_commitment() const;
   long double get_priority() const;
   lt_time_t get_update_time() const;
   long double get_cpu_relative_allocation() const;
@@ -37,10 +37,10 @@ class Element {
 
  private:
   struct Resource {
-    Resource(long double system_total, long double credibility=0,
+    Resource(long double system_total, long double commitment=0,
              long double relative_allocation=0, long double share=0);
     const long double system_total;
-    mutable long double credibility;
+    mutable long double commitment;
     long double relative_allocation;
     long double share;
   };
@@ -49,8 +49,8 @@ class Element {
   Resource cpu;
   Resource memory;
 
-  long double calculate_credibility(lt_time_t current_time,
-    long double previous_credibility, long double relative_allocation,
+  long double calculate_commitment(lt_time_t current_time,
+    long double previous_commitment, long double relative_allocation,
     long double share) const;
   lt_time_t get_priority_intersection(const Resource& r1,
                                        const Resource& r2) const;
