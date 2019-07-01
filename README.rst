@@ -18,7 +18,7 @@ privileges)::
 
 Then, clone this repository::
 
-    git clone git@github.com:hugombarreto/sdrf.git
+    git clone git@github.com:hsadok/sdrf.git
 
 Install all the python dependencies (unless you are using something like
 virtualenv, which is highly recommended, you must have root privileges)::
