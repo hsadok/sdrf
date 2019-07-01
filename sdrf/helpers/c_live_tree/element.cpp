@@ -1,13 +1,13 @@
 
-#include <iostream>
 #include <algorithm>
-#include <functional>
-#include <sstream>
-#include <iomanip>
-#include <string>
-#include <stdexcept>
-
 #include <cmath>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <sstream>
+#include <stdexcept>
+#include <string>
 
 #include "element.h"
 
@@ -37,39 +37,30 @@ bool Element::operator<(const Element& rhs) const {
     return my_priority < rhs_priority;
   }
 
-  const Element::Resource& my_dominant_resource =
-          get_dominant_resource(update_time);
-  const Element::Resource& rhs_dominant_resource =
-          rhs.get_dominant_resource(update_time);
-  long double my_growth = get_priority_derivative(my_dominant_resource, 0);
-  long double rhs_growth = get_priority_derivative(rhs_dominant_resource, 0);
-  if (std::isfinite(my_growth) && std::isfinite(rhs_growth) &&
-      my_growth != rhs_growth)
-  {
-    return my_growth < rhs_growth;
+  my_priority = get_priority_derivative();
+  rhs_priority = rhs.get_priority_derivative();
+  if (my_priority != rhs_priority) {
+    return my_priority < rhs_priority;
   }
 
-  return name < rhs.name;
+  return name < rhs.name; // they grow together, use name for consistency
 }
 
 bool Element::operator==(const Element& rhs) const {
   return this->name == rhs.name;
 }
 
-void Element::update(lt_time_t current_time) const {
-  if (current_time == update_time) {
+void Element::update(lt_time_t next_update_time) const {
+  if (next_update_time == update_time) {
     return;
   }
-  if (current_time < update_time) {
+  if (next_update_time < update_time) {
     throw std::runtime_error("Can't update Element to the past");
   }
-  cpu.commitment = calculate_commitment(current_time, cpu.commitment,
-                                          cpu.relative_allocation, cpu.share);
-  memory.commitment = calculate_commitment(current_time, memory.commitment,
-                                             memory.relative_allocation,
-                                             memory.share);
-
-  update_time = current_time;
+  lt_time_t time_delta = next_update_time - update_time;
+  cpu.update_commitment(time_delta, tau);
+  memory.update_commitment(time_delta, tau);
+  update_time = next_update_time;
 }
 
 lt_time_t Element::get_switch_time(const Element& other_element) const {
@@ -79,84 +70,24 @@ lt_time_t Element::get_switch_time(const Element& other_element) const {
     other_element.update(update_time);
   }
 
-  // first define self-intersections, these breaks will define the regimes;
-  // for 2 resources there is a maximum of 3 regimes
-  lt_time_t self_intersec = get_priority_intersection(cpu, memory);
-  lt_time_t other_intersec = get_priority_intersection(other_element.cpu,
-                                                    other_element.memory);
+  lt_time_t next_intersec = std::numeric_limits<lt_time_t>::infinity();
 
-  if (!std::isfinite(self_intersec)) {
-    self_intersec = -1;
-  }
-
-  if (!std::isfinite(other_intersec)) {
-    other_intersec = -2;
-  }
-
-  lt_time_t min_intersec = std::min(self_intersec, other_intersec);
-  lt_time_t max_intersec = std::max(self_intersec, other_intersec);
-
-  if (min_intersec <= 0) {
-    min_intersec = max_intersec;
-  }
-
-  lt_time_t t;
-  lt_time_t intersection;
-  // regime 1: t in (0, min_intersec)
-  if (min_intersec > 0) {
-    t = update_time + min_intersec/2;
-    const Element::Resource& self_domin_res = get_dominant_resource(t);
-    const Element::Resource& other_domin_res =
-            other_element.get_dominant_resource(t);
-    intersection = get_priority_intersection(self_domin_res, other_domin_res);
-    if (std::isfinite(intersection) &&
-        (intersection > 0) && (intersection < min_intersec)) {
-      return update_time + intersection;
+  auto update_intersec = [&next_intersec](lt_time_t intersec) {
+    if (std::isfinite(intersec) && (intersec > 0) && 
+        (intersec < next_intersec)) {
+      next_intersec = intersec;
     }
+  };
 
-    // regime 2: t in [min_intersec, max_intersec)
-    if (min_intersec < max_intersec) {
-      t = update_time + (min_intersec + max_intersec)/2;
-      const Element::Resource& self_domin_res = get_dominant_resource(t);
-      const Element::Resource& other_domin_res =
-              other_element.get_dominant_resource(t);
-      intersection=get_priority_intersection(self_domin_res, other_domin_res);
-      if (std::isfinite(intersection) && (intersection > 0) &&
-         (intersection >= min_intersec) && (intersection < max_intersec)) {
-        t = update_time + intersection;
-        if (intersection == min_intersec) {
-          // we can't know for sure if the intersection causes a switch
-          // so we compare the derivatives
-          if (get_priority_derivative(self_domin_res, intersection) >
-              get_priority_derivative(other_domin_res, intersection)) {
-            return t;
-          }
-        }
-        return t;
-      }
-    }
+  update_intersec(calculate_intersec(cpu, other_element.cpu, other_element));
+  update_intersec(calculate_intersec(cpu, other_element.memory, other_element));
+  update_intersec(calculate_intersec(memory, other_element.cpu, other_element));
+  update_intersec(calculate_intersec(memory, other_element.memory,
+                                     other_element));
+  if (std::isfinite(next_intersec)) {
+    return next_intersec + update_time;
   }
-
-  // regime 3: t in [max(min_intersec, max_intersec, 0), +inf)
-  t = update_time + std::max<long double>(max_intersec, 0.0) + 1;
-  const Element::Resource& self_domin_res = get_dominant_resource(t);
-  const Element::Resource& other_domin_res =
-          other_element.get_dominant_resource(t);
-  intersection=get_priority_intersection(self_domin_res, other_domin_res);
-  if (std::isfinite(intersection) && (intersection > 0) &&
-     (intersection >= max_intersec)) {
-    t = update_time + intersection;
-    if (intersection == max_intersec) {
-      // we can't know for sure if the intersection causes a switch
-      // so we compare the derivatives
-      if (get_priority_derivative(self_domin_res, intersection) >
-          get_priority_derivative(other_domin_res, intersection)) {
-        return t;
-      }
-    }
-    return update_time + intersection;
-  }
-  return -1;
+  return std::numeric_limits<lt_time_t>::infinity();
 }
 
 lt_name_t Element::get_name() const {
@@ -172,7 +103,11 @@ long double Element::get_memory_commitment() const {
 }
 
 long double Element::get_priority() const {
-  return std::max(calculate_priority(cpu), calculate_priority(memory));
+  long double dominant_commitment = std::max(
+    cpu.norm_commitment(), memory.norm_commitment());
+  const Resource& dominant_resource = get_dominant_resource();
+
+  return dominant_resource.norm_allocation() + dominant_commitment;
 }
 
 lt_time_t Element::get_update_time() const {
@@ -206,59 +141,61 @@ Element::Resource::Resource(long double system_total, long double commitment,
    : system_total(system_total), commitment(commitment),
      relative_allocation(relative_allocation), share(share) { }
 
-long double Element::calculate_commitment(lt_time_t current_time,
-    long double previous_commitment, long double relative_allocation,
-    long double share) const {
-  lt_time_t delta_t = current_time - update_time;
-  long double alpha = 1 - std::exp(-delta_t/tau);
-  return previous_commitment + alpha * (
-    std::max<long double>(relative_allocation-share, 0) - previous_commitment
-  );
+lt_time_t Element::calculate_intersec(const Element::Resource& my_res,
+    const Element::Resource& other_res, const Element& other_element) const
+{
+  // overused resources
+  long double ov1 = my_res.overused_resource() / my_res.system_total;
+  long double ov2 = other_res.overused_resource() / other_res.system_total;
+  
+  // commitments
+  long double c1 = my_res.norm_commitment();
+  long double c2 = other_res.norm_commitment();
+
+  // dominant allocations
+  long double dom1 = get_dominant_resource().norm_allocation();
+  long double dom2 = other_element.get_dominant_resource().norm_allocation();
+
+  return tau * std::log((ov1 - ov2 + c2 - c1) / (ov1 - ov2 + dom1 - dom2));
 }
 
-lt_time_t Element::get_priority_intersection(const Element::Resource& r1,
-                                              const Element::Resource& r2)const{
-//  return tau * std::log(
-//          0.5 * (1 + (r1.system_total * r2.commitment
-//                      - r2.system_total * r1.commitment) /
-//                     (r2.system_total * r1.relative_allocation
-//                      - r1.system_total * r2.relative_allocation)
-//                )
-//  );
-    long double overused_r1 = get_overused_resource(r1);
-    long double overused_r2 = get_overused_resource(r2);
-    return tau * std::log(
-      (r2.system_total*(overused_r1 - r1.commitment)
-      - r1.system_total * (overused_r2 - r2.commitment)) /
-      (r2.system_total*(overused_r1 + r1.relative_allocation)
-      - r1.system_total*(overused_r2 + r2.relative_allocation))
-    );
+long double Element::get_priority_derivative(lt_time_t time_delta) const {
+  const Resource& dominant_resource = get_dominant_resource();
+  return dominant_resource.commitment_derivative(time_delta, tau);
 }
 
-long double Element::calculate_priority(const Element::Resource& res,
-                                   const lt_time_t time) const {
-  long double commitment = res.commitment;
-  if (time != 0) {
-    commitment = calculate_commitment(time, commitment,
-                                        res.relative_allocation, res.share);
+const Element::Resource& Element::get_dominant_resource() const {
+  if (cpu.norm_allocation() > memory.norm_allocation()) {
+    return cpu;
   }
-  return (res.relative_allocation + commitment) / res.system_total;
+  return memory;
 }
 
-long double Element::get_priority_derivative(const Element::Resource& r,
-    lt_time_t time_delta) const {
-  return (r.relative_allocation - r.commitment)/(r.system_total * tau)
-         * std::exp(-time_delta/tau);
+long double Element::get_dominant_commitment() const {
+  return std::max(cpu.norm_commitment(), memory.norm_commitment());
 }
 
-const Element::Resource& Element::get_dominant_resource(
-        const lt_time_t time) const {
-  if (calculate_priority(cpu, time) < calculate_priority(memory, time)) {
-    return memory;
-  }
-  return cpu;
+long double Element::Resource::norm_allocation() const {
+  return relative_allocation / system_total;
 }
 
-long double Element::get_overused_resource(const Resource& r) const {
-  return std::max<long double>(r.relative_allocation - r.share, 0);
+long double Element::Resource::norm_commitment() const {
+  return commitment / system_total;
+}
+
+long double Element::Resource::overused_resource() const {
+  return std::max<long double>(relative_allocation - share, 0);
+}
+
+long double Element::Resource::commitment_derivative(lt_time_t time_delta,
+    long double tau) const {
+  return (overused_resource() / system_total - norm_commitment()) / 
+         tau * std::exp(-time_delta/tau);
+}
+
+void Element::Resource::update_commitment(lt_time_t time_delta, long double tau)
+const
+{
+  long double alpha = 1 - std::exp(-time_delta/tau);
+  commitment += alpha * (overused_resource() - commitment);
 }

@@ -37,7 +37,6 @@ class LiveTree {
   bool element_is_in(const lt_name_t& name) const;
   operator std::string() const;
   void update(lt_time_t current_time);
-  void check_order();
 
   static int get_insert_count();
   static int get_update_count();
@@ -54,6 +53,8 @@ class LiveTree {
   static int events_count;
 
   void update_event(elements_map::iterator iter);
+  void check_order() const;
+  void print_info() const;
 };
 
 #endif // LIVE_TREE_H

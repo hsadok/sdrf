@@ -87,6 +87,16 @@ def tasks_generator(tasks_file, stop_time=None, truncate=False):
                                       args=(tasks_file, line_queue, stop_time,
                                             truncate))
     loading_thread.start()
+    task_counter = 0
     num_tasks = get_line_number(tasks_file)
-    for task in tqdm(iter(line_queue.get, None), total=num_tasks):
+    last_percentage = -1
+    for task in iter(line_queue.get, None):
+        task_counter += 1
+        percentage = task_counter * 100 / num_tasks
+        if percentage > last_percentage:
+            last_percentage = percentage
+            print percentage, '%'
         yield task
+
+    # for task in tqdm(iter(line_queue.get, None), total=num_tasks):
+    #     yield task

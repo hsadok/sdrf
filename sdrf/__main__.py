@@ -74,7 +74,6 @@ def system_utilization(tasks_file):
 def simulate_task_allocation(tasks_file, saving_path, allocator, config, delta,
                              resource, same_share, reserved, weights):
 
-    print __package__
     if (not config) and (not resource):
         print('Must provide a config file or at least one resource percentage')
         sys.exit(1)

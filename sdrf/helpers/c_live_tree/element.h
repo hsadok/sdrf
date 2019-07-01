@@ -36,13 +36,21 @@ class Element {
   operator std::string() const;
 
  private:
-  struct Resource {
+  struct Resource { // none of these values are normalized!
     Resource(long double system_total, long double commitment=0,
              long double relative_allocation=0, long double share=0);
-    const long double system_total;
-    mutable long double commitment;
-    long double relative_allocation;
-    long double share;
+    const long double system_total; // total amount of resources in the system
+    mutable long double commitment; // non-normalized commitment
+    long double relative_allocation; // non-normalized allocation
+    long double share; // non-normalized share of resources that the user can
+                       // use without commitment
+
+    long double norm_allocation() const;
+    long double norm_commitment() const;
+    long double overused_resource() const;
+    long double commitment_derivative(lt_time_t time_delta,
+      long double tau) const;
+    void update_commitment(lt_time_t time_delta, long double tau) const;
   };
   mutable lt_time_t update_time;
   const long double tau;
@@ -52,12 +60,11 @@ class Element {
   long double calculate_commitment(lt_time_t current_time,
     long double previous_commitment, long double relative_allocation,
     long double share) const;
-  lt_time_t get_priority_intersection(const Resource& r1,
-                                       const Resource& r2) const;
-  long double calculate_priority(const Resource& res, const lt_time_t time=0) const;
-  long double get_priority_derivative(const Resource& r, lt_time_t time_delta) const;
-  const Resource& get_dominant_resource(const lt_time_t time=0) const;
-  long double get_overused_resource(const Resource& r) const;
+  lt_time_t calculate_intersec(const Element::Resource& my_res,
+    const Element::Resource& other_res, const Element& other_element) const;
+  long double get_priority_derivative(lt_time_t time_delta=0.0L) const;
+  const Resource& get_dominant_resource() const;
+  long double get_dominant_commitment() const;
 };
 
 namespace std {

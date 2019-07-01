@@ -3,15 +3,18 @@
 // Priority Queue with weights that change overtime in a predictive way
 //
 
-#include <iostream>
 #include <algorithm>
-#include <functional>
-#include <string>
+#include <cmath>
 #include <forward_list>
-#include <set>
+#include <functional>
+#include <iomanip>
+#include <iostream>
 #include <map>
-#include <vector>
+#include <set>
+#include <sstream>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 #include "element.h"
 #include "live_tree.h"
@@ -27,7 +30,7 @@ LiveTree::LiveTree() {
     #pragma message "Logic check is activated, this will make the code slower."
     std::cout << "LOGIC CHECK" << std::endl;
   #endif
-  last_time = -1;
+  last_time = -1.0L;
 }
 
 void LiveTree::add(Element element) {
@@ -145,16 +148,31 @@ LiveTree::operator std::string() const {
   return out_str;
 }
 
-void LiveTree::check_order() {
+void LiveTree::check_order() const {
   long double last_priority = -100;
   for (auto element : elements_priority) {
     Element cpy(element.first);
     cpy.update(last_time);
     if ( (last_priority - cpy.get_priority()) > 1e-15 ) {
+      std::cout << "last priority: " << last_priority << "  this priority: " <<
+                   cpy.get_priority() << std::endl;
+      print_info();
       throw std::logic_error("LiveTree not properly ordered");
     }
     last_priority = cpy.get_priority();
   }
+}
+
+void LiveTree::print_info() const {
+  std::cout << "Last time: " << std::setprecision(50) << last_time << std::endl;
+  std::cout << "Elements: " << std::string(*this) << std::endl;
+  std::cout << "Events: [";
+  for (auto event : events) {
+    std::ostringstream priority_out_stream;
+    priority_out_stream << std::setprecision(50) << event.first;
+    std::cout << priority_out_stream.str() << ": " << event.second << ", ";
+  }
+  std::cout << "]" << std::endl << std::endl;
 }
 
 void LiveTree::update(lt_time_t current_time) {
@@ -166,11 +184,9 @@ void LiveTree::update(lt_time_t current_time) {
     throw std::runtime_error("LiveTree can't go back in time...");
   }
 
-  auto event_it = events.begin();
-  if (event_it->first >= current_time) {
-    return;
-  }
+  last_time = current_time;
 
+  auto event_it = events.begin();
   std::forward_list<Element> pending_reinsertion;
   elements_map::iterator element_it, neighbor_it;
   while( (event_it != events.end()) && (event_it->first < current_time) ) {
@@ -178,11 +194,11 @@ void LiveTree::update(lt_time_t current_time) {
     element_it = elements_name_mapper.at(event_it->second);
     neighbor_it = std::next(element_it);
     pending_reinsertion.push_front(remove(event_it->second));
-    pending_reinsertion.push_front(remove(neighbor_it->first.name));
+    if (neighbor_it != elements_priority.end()) {
+      pending_reinsertion.push_front(remove(neighbor_it->first.name));
+    }
     event_it = events.begin();
   }
-
-  last_time = current_time;
 
   while(!pending_reinsertion.empty()) {
     pending_reinsertion.front().update(last_time);
@@ -212,7 +228,7 @@ void LiveTree::update_event(elements_map::iterator iter) {
 
   if (std::next(iter) != elements_priority.end()) {
     lt_time_t switch_time =iter->first.get_switch_time(std::next(iter)->first);
-    if (switch_time >= 0) {
+    if (std::isfinite(switch_time)) {
       auto return_pair = events.emplace(switch_time, iter->first.name);
       #ifdef LOGIC_CHECK
         if (!return_pair.second) {
